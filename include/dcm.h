@@ -4,7 +4,6 @@
 #include "common.h"
 
 // Compiler instructions - option for lightwight trig implementation?
-#include <array>
 #include <cmath>
 
 namespace attitude
@@ -13,30 +12,35 @@ namespace attitude
     class dcm_
     {
     private:
-        std::array<T, 9> _R;
+        math::matrix9<T> _R;
 
-    public:
         dcm_() : _R{ 1, 0, 0,
                      0, 1, 0,
                      0, 0, 1 }
         {}
 
-        dcm_(std::array<T, 9> R) : _R(R)
+    public:
+        dcm_(math::matrix9<T> R) : _R(R)
+        {}
+
+        dcm_(   T _1, T _2, T _3,
+                T _4, T _5, T _6,
+                T _7, T _8, T _9 ) : _R{ _1, _2, _3, _4, _5, _6, _7, _8, _9 }
         {}
 
         dcm_<T> get_reverse()
         {
-            return dcm_<T>(math::matrix_transpose(_R));
+            return _R.transpose();
         }
 
-        std::array<T, 9> get_matrix()
+        math::matrix9<T> get_matrix()
         {
             return _R;
         }
 
         dcm_<T> operator+(dcm_<T> R)
         {
-            return dcm_<T>(math::matrix_multiply(_R, R.get_matrix()));
+            return dcm_<T>(_R * R.get_matrix());
         }
 
         dcm_<T> operator-(dcm_<T> R)
@@ -47,68 +51,62 @@ namespace attitude
 
         bool operator==(dcm_<T> R)
         {
-            std::array<T, 9> diff = math::array_diff(_R, R.get_matrix());
-            return math::matrix_is_value(diff, T(0));
+            math::matrix9<T> diff = _R - R.get_matrix();
+            return diff == T(0);
         }
 
-        bool operator==(std::array<T, 9> R)
+        bool operator==(math::matrix9<T> R)
         {
             return _R == R;
         }
 
         std::array<T, 3> operator[](int i)
         {
-            int lowest_index = i * 3;
-            return { _R[lowest_index], _R[lowest_index + 1], _R[lowest_index + 2] };
+            return _R[i];
         }
     };
 
     template<typename T>
     dcm_<T> ZERO()
     {
-        return dcm_<T>();
+        return dcm_<T>(T(1.), T(0.), T(0.),
+                       T(0.), T(1.), T(0.),
+                       T(0.), T(0.), T(1.) );
     }
 
     template<typename T>
     dcm_<T> R1(T theta)
     {
-        return dcm_<T>({
-            T(1.), T(0.), T(0.),
-            T(0.),  cos(theta), sin(theta),
-            T(0.), -sin(theta), cos(theta)
-            });
+        return dcm_<T>( T(1.), T(0.), T(0.),
+                        T(0.),  cos(theta), sin(theta),
+                        T(0.), -sin(theta), cos(theta) );
     }
 
     template<typename T>
     dcm_<T> R2(T theta)
     {
-        return dcm_<T>({
-            cos(theta), T(0.), -sin(theta),
-            T(0.), T(1.), T(0.),
-            sin(theta), T(0.),  cos(theta)
-            });
+        return dcm_<T>( cos(theta), T(0.), -sin(theta),
+                        T(0.), T(1.), T(0.),
+                        sin(theta), T(0.),  cos(theta) );
     }
 
     template<typename T>
     dcm_<T> R3(T theta)
     {
-        return dcm_<T>({
-            cos(theta), sin(theta), T(0.),
-           -sin(theta), cos(theta), T(0.),
-            T(0.), T(0.), T(1.)
-            });
+        return dcm_<T>(  cos(theta), sin(theta), T(0.),
+                        -sin(theta), cos(theta), T(0.),
+                         T(0.), T(0.), T(1.) );
     }
 }
 
 template<typename T>
 void display(attitude::dcm_<T> R)
 {
-    std::array<T, 9> _R = R.get_matrix();
+    attitude::math::matrix9<T> _R = R.get_matrix();
 
     for (int i = 0; i < 3; i++)
     {
-        int lowest_index = i * 3;
-        T row[3]{ _R[lowest_index], _R[lowest_index + 1], _R[lowest_index + 2] };
+        std::array<T, 3> row = _R[i];
 
         std::cout
             << "[ "
