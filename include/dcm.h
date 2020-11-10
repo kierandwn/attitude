@@ -60,7 +60,7 @@ namespace attitude
             return _R == R;
         }
 
-        std::array<T, 3> operator[](int i)
+        T* operator[](int i)
         {
             return _R[i];
         }
@@ -106,7 +106,7 @@ void display(attitude::dcm_<T> R)
 
     for (int i = 0; i < 3; i++)
     {
-        std::array<T, 3> row = _R[i];
+        T* row = _R[i];
 
         std::cout
             << "[ "

@@ -1,8 +1,6 @@
 #ifndef ATT_MATRIX_H
 #define ATT_MATRIX_H
 
-#include <array>
-
 namespace attitude
 {
 	namespace math
@@ -22,16 +20,9 @@ namespace attitude
 					T _7, T _8, T _9 ) : _items{ _1, _2, _3, _4, _5, _6, _7, _8, _9 }
 			{}
 
-			int sizeofthis() const { return 9; }
-
-			std::array<T, 3> operator[] (int i) 
+			T* operator[] (int i) 
 			{ 
-				return { _items[i * 3], _items[i * 3 + 1], _items[i * 3 + 2] };
-			}
-
-			const std::array<T, 3> operator[] (int i) const 
-			{ 
-				return { _items[i * 3], _items[i * 3 + 1], _items[i * 3 + 2] };
+				return &_items[i * 3];
 			}
 
 			matrix9<T> operator- (matrix9<T> M)
@@ -102,7 +93,7 @@ namespace attitude
 				{
 					for (int j = 0; j < 3; j++)
 					{
-						transposed[i * 3 + j] = operator[](j * 3 + i);
+						transposed[i][j] = operator[](j)[i];
 					}
 				}
 				return transposed;
