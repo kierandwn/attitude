@@ -1,10 +1,10 @@
 #ifndef DCM_H
 #define DCM_H
 
-#include "common.h"
-
 // Compiler instructions - option for lightwight trig implementation?
 #include <cmath>
+
+#include "matrix9.h"
 
 namespace attitude
 {
@@ -23,12 +23,12 @@ namespace attitude
         dcm_(math::matrix9<T> R) : _R(R)
         {}
 
-        dcm_(   T _1, T _2, T _3,
-                T _4, T _5, T _6,
-                T _7, T _8, T _9 ) : _R{ _1, _2, _3, _4, _5, _6, _7, _8, _9 }
+        dcm_(T _1, T _2, T _3,
+             T _4, T _5, T _6,
+             T _7, T _8, T _9 ) : _R{ _1, _2, _3, _4, _5, _6, _7, _8, _9 }
         {}
 
-        dcm_<T> get_reverse()
+        dcm_<T> reverse()
         {
             return _R.transpose();
         }
@@ -45,8 +45,14 @@ namespace attitude
 
         dcm_<T> operator-(dcm_<T> R)
         {
-            dcm_<T> R3 = operator+(R.get_reverse());
+            dcm_<T> R3 = operator+(R.reverse());
             return R3;
+        }
+
+        dcm_<T>* operator+=(dcm_<T> R)
+        {
+            _R *= R.get_matrix();
+            return this;
         }
 
         bool operator==(dcm_<T> R)
@@ -96,6 +102,21 @@ namespace attitude
         return dcm_<T>(  cos(theta), sin(theta), T(0.),
                         -sin(theta), cos(theta), T(0.),
                          T(0.), T(0.), T(1.) );
+    }
+
+    template<typename T>
+    dcm_<T> AXIS(int axis, T theta)
+    {
+        switch (axis) {
+            case 1:
+                return R1(theta);
+            case 2:
+                return R2(theta);
+            case 3:
+                return R3(theta);
+            default:
+                return ZERO<T>();
+        }
     }
 }
 
