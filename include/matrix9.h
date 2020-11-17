@@ -57,6 +57,23 @@ namespace attitude
 				});
 			}
 
+			matrix9* operator*= (matrix9<T> M)
+			{
+				// Row 1
+				operator[](0)[0] = operator[](0)[0] * M[0][0] + operator[](0)[1] * M[1][0] + operator[](0)[2] * M[2][0]; // M3[0,0]
+				operator[](0)[1] = operator[](0)[0] * M[0][1] + operator[](0)[1] * M[1][1] + operator[](0)[2] * M[2][1]; // M3[0,1]
+				operator[](0)[2] = operator[](0)[0] * M[0][2] + operator[](0)[1] * M[1][2] + operator[](0)[2] * M[2][2]; // M3[0,2]
+				// Row 2
+				operator[](1)[0] = operator[](1)[0] * M[0][0] + operator[](1)[1] * M[1][0] + operator[](1)[2] * M[2][0]; // M3[1,0]
+				operator[](1)[1] = operator[](1)[0] * M[0][1] + operator[](1)[1] * M[1][1] + operator[](1)[2] * M[2][1]; // M3[1,1]
+				operator[](1)[2] = operator[](1)[0] * M[0][2] + operator[](1)[1] * M[1][2] + operator[](1)[2] * M[2][2]; // M3[1,2]
+				// Row 3
+				operator[](2)[0] = operator[](2)[0] * M[0][0] + operator[](2)[1] * M[1][0] + operator[](2)[2] * M[2][0]; // M3[2,0] 
+				operator[](2)[1] = operator[](2)[0] * M[0][1] + operator[](2)[1] * M[1][1] + operator[](2)[2] * M[2][1]; // M3[2,1]
+				operator[](2)[2] = operator[](2)[0] * M[0][2] + operator[](2)[1] * M[1][2] + operator[](2)[2] * M[2][2]; // M3[2,2]
+				return this;
+			}
+
 			bool operator==(matrix9<T> M)
 			{
 				for (int i = 0; i < 3; i++)
@@ -67,7 +84,6 @@ namespace attitude
 							return false;
 					}
 				}
-
 				return true;
 			}
 
@@ -81,7 +97,6 @@ namespace attitude
 							return false;
 					}
 				}
-
 				return true;
 			}
 
@@ -100,6 +115,8 @@ namespace attitude
 			}
 		};
 
+		template <typename T>
+		matrix9<T> EYE3{ T(1.), T(0.), T(0.), T(0.), T(1.), T(0.), T(0.), T(0.), T(1.) };
 	}
 }
 #endif // ATT_MATRIX_H
