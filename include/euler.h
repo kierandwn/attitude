@@ -26,13 +26,12 @@ namespace attitude
                                    _R(to_dcm(*this))
         {}
 
-        euler_(T t1, T t2, T t3, char ijk[4]) : _theta{ t1, t2, t3 },
+        euler_(T t1, T t2, T t3, uint16_t ijk) : _theta{ t1, t2, t3 },
                                                 _ijk(ijk),
                                                 _R(to_dcm(*this))
         {}
 
-        euler_(dcm_<T> R, uint16_t ijk) : // _theta{ extract_euler_from_dcm(R, ijk) },
-                                          _ijk(ijk),
+        euler_(dcm_<T> R, uint16_t ijk) : _ijk(ijk),
                                           _R(R)
         {
             extract_euler_from_dcm(R, ijk);
@@ -57,6 +56,14 @@ namespace attitude
         euler_<T>* operator+=(euler_<T> theta)
         {
             _R += theta.dcm();
+            extract_euler_from_dcm(_R, order());
+            return this;
+        }
+
+        euler_<T>* operator-=(euler_<T> theta)
+        {
+            _R -= theta.dcm();
+            extract_euler_from_dcm(_R, order());
             return this;
         }
 

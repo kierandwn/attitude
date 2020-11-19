@@ -19,6 +19,8 @@ namespace attitude
                      0, 0, 1 }
         {}
 
+        T* _get(int i) { return _R[i]; }
+
     public:
         dcm_(math::matrix9<T> R) : _R(R)
         {}
@@ -28,19 +30,13 @@ namespace attitude
              T _7, T _8, T _9 ) : _R{ _1, _2, _3, _4, _5, _6, _7, _8, _9 }
         {}
 
-        dcm_<T> reverse()
-        {
-            return _R.transpose();
-        }
+        dcm_<T> reverse() { return _R.transpose(); }
 
-        math::matrix9<T> get_matrix()
-        {
-            return _R;
-        }
+        math::matrix9<T> matrix() { return _R; }
 
         dcm_<T> operator+(dcm_<T> R)
         {
-            return dcm_<T>(_R * R.get_matrix());
+            return dcm_<T>(_R * R.matrix());
         }
 
         dcm_<T> operator-(dcm_<T> R)
@@ -51,25 +47,25 @@ namespace attitude
 
         dcm_<T>* operator+=(dcm_<T> R)
         {
-            _R *= R.get_matrix();
+            _R *= R.matrix();
+            return this;
+        }
+
+        dcm_<T>* operator-=(dcm_<T> R)
+        {
+            _R += R.matrix().transpose();
             return this;
         }
 
         bool operator==(dcm_<T> R)
         {
-            math::matrix9<T> diff = _R - R.get_matrix();
+            math::matrix9<T> diff = _R - R.matrix();
             return diff == T(0);
         }
 
-        bool operator==(math::matrix9<T> R)
-        {
-            return _R == R;
-        }
+        bool operator==(math::matrix9<T> R) { return _R == R; }
 
-        T* operator[](int i)
-        {
-            return _R[i];
-        }
+        T* operator[](int i){ return _get(i); }
     };
 
     template<typename T>
@@ -123,7 +119,7 @@ namespace attitude
 template<typename T>
 void display(attitude::dcm_<T> R)
 {
-    attitude::math::matrix9<T> _R = R.get_matrix();
+    attitude::math::matrix9<T> _R = R.matrix();
 
     for (int i = 0; i < 3; i++)
     {
