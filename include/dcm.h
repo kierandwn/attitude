@@ -4,7 +4,7 @@
 // Compiler instructions - option for lightwight trig implementation?
 #include <cmath>
 
-#include "matrix9.h"
+#include "matrix.h"
 
 namespace attitude
 {
@@ -12,27 +12,25 @@ namespace attitude
     class dcm_
     {
     private:
-        math::matrix9<T> _R;
+        math::matrix<T, 3> _R;
 
-        dcm_() : _R{ 1, 0, 0,
-                     0, 1, 0,
-                     0, 0, 1 }
-        {}
+        dcm_() : _R{ 3, 1, 0, 0,
+                        0, 1, 0,
+                        0, 0, 1 } {}
 
         T* _get(int i) { return _R[i]; }
 
     public:
-        dcm_(math::matrix9<T> R) : _R(R)
-        {}
+        dcm_(math::matrix<T, 3> R) : _R(R) {}
 
         dcm_(T _1, T _2, T _3,
              T _4, T _5, T _6,
-             T _7, T _8, T _9 ) : _R{ _1, _2, _3, _4, _5, _6, _7, _8, _9 }
+             T _7, T _8, T _9 ) : _R{ 3, _1, _2, _3, _4, _5, _6, _7, _8, _9 }
         {}
 
         dcm_<T> reverse() { return _R.transpose(); }
 
-        math::matrix9<T> matrix() { return _R; }
+        math::matrix<T, 3> matrix() { return _R; }
 
         dcm_<T> operator+(dcm_<T> R)
         {
@@ -59,11 +57,11 @@ namespace attitude
 
         bool operator==(dcm_<T> R)
         {
-            math::matrix9<T> diff = _R - R.matrix();
+            math::matrix<T, 3> diff = _R - R.matrix();
             return diff == T(0);
         }
 
-        bool operator==(math::matrix9<T> R) { return _R == R; }
+        bool operator==(math::matrix<T, 3> R) { return _R == R; }
 
         T* operator[](int i){ return _get(i); }
     };
@@ -119,7 +117,7 @@ namespace attitude
 template<typename T>
 void display(attitude::dcm_<T> R)
 {
-    attitude::math::matrix9<T> _R = R.matrix();
+    attitude::math::matrix<T, 3> _R = R.matrix();
 
     for (int i = 0; i < 3; i++)
     {
