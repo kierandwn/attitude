@@ -12,7 +12,7 @@ namespace attitude
     class dcm_
     {
     private:
-        math::matrix<T, 3> _R;
+        linalg::square<T> _R = linalg::square<T>(3);
 
         dcm_() : _R{ 3, 1, 0, 0,
                         0, 1, 0,
@@ -21,7 +21,7 @@ namespace attitude
         T* _get(int i) { return _R[i]; }
 
     public:
-        dcm_(math::matrix<T, 3> R) : _R(R) {}
+        dcm_(linalg::square<T> R) : _R(R) {}
 
         dcm_(T _1, T _2, T _3,
              T _4, T _5, T _6,
@@ -30,7 +30,7 @@ namespace attitude
 
         dcm_<T> reverse() { return _R.transpose(); }
 
-        math::matrix<T, 3> matrix() { return _R; }
+        linalg::square<T> matrix() { return _R; }
 
         dcm_<T> operator+(dcm_<T> R)
         {
@@ -57,11 +57,11 @@ namespace attitude
 
         bool operator==(dcm_<T> R)
         {
-            math::matrix<T, 3> diff = _R - R.matrix();
+            linalg::square<T> diff = _R - R.matrix();
             return diff == T(0);
         }
 
-        bool operator==(math::matrix<T, 3> R) { return _R == R; }
+        bool operator==(linalg::matrix<T> R) { return _R == R; } // TODO: remove, and add explicit flags to avoid implicit conversion from square to dcm
 
         T* operator[](int i){ return _get(i); }
     };
@@ -117,7 +117,7 @@ namespace attitude
 template<typename T>
 void display(attitude::dcm_<T> R)
 {
-    attitude::math::matrix<T, 3> _R = R.matrix();
+    attitude::linalg::square<T> _R = R.matrix();
 
     for (int i = 0; i < 3; i++)
     {

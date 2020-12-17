@@ -11,22 +11,21 @@ namespace attitude
     class euler_
     {
     private:
-        dcm_<T> _R;
+        T _items[3] = { 0 };
+        T _get(int i) { return _items[i]; }
+
+        dcm_<T> _R = { T(1.), T(0.), T(0.),
+                       T(0.), T(1.), T(0.),
+                       T(0.), T(0.), T(1.) };
+
         const uint16_t _ijk = 123;
 
-        T _theta[3] = { 0 };
-        T _get(int i) { return _theta[i]; }
-
     public:
-        euler_() : _theta{ T(0.), T(0.), T(0.) },
-                   _R(to_dcm(*this))
-        {}
+        euler_() {}
+        euler_(T t1, T t2, T t3) : _items{ t1, t2, t3 },
+                                   _R(to_dcm(*this)) {}
 
-        euler_(T t1, T t2, T t3) : _theta{ t1, t2, t3 },
-                                   _R(to_dcm(*this))
-        {}
-
-        euler_(T t1, T t2, T t3, uint16_t ijk) : _theta{ t1, t2, t3 },
+        euler_(T t1, T t2, T t3, uint16_t ijk) : _items{ t1, t2, t3 },
                                                 _ijk(ijk),
                                                 _R(to_dcm(*this))
         {}
@@ -77,75 +76,75 @@ namespace attitude
         {
             if (ijk == 121)
             {
-                _theta[0] = atan2(-R[0][1], R[0][2]);
-                _theta[1] = acos(R[0][0]);
-                _theta[2] = atan2(R[1][0], R[2][0]);
+                _items[0] = atan2(-R[0][1], R[0][2]);
+                _items[1] = acos(R[0][0]);
+                _items[2] = atan2(R[1][0], R[2][0]);
             }
             else if (ijk == 123)
             {
-                _theta[0] = atan2(-R[2][1], R[2][2]);
-                _theta[1] = asin(R[2][0]);
-                _theta[2] = atan2(-R[1][0], R[0][0]);
+                _items[0] = atan2(-R[2][1], R[2][2]);
+                _items[1] = asin(R[2][0]);
+                _items[2] = atan2(-R[1][0], R[0][0]);
             }
             else if (ijk == 131)
             {
-                _theta[0] = atan2(R[0][2], R[0][1]);
-                _theta[1] = acos(R[0][0]);
-                _theta[2] = atan2(R[2][0], -R[1][0]);
+                _items[0] = atan2(R[0][2], R[0][1]);
+                _items[1] = acos(R[0][0]);
+                _items[2] = atan2(R[2][0], -R[1][0]);
             }
             else if (ijk == 132)
             {
-                _theta[0] = atan2(R[1][2], R[1][1]);
-                _theta[1] = asin(-R[1][0]);
-                _theta[2] = atan2(R[2][0], R[0][0]);
+                _items[0] = atan2(R[1][2], R[1][1]);
+                _items[1] = asin(-R[1][0]);
+                _items[2] = atan2(R[2][0], R[0][0]);
             }
             else if (ijk == 212)
             {
-                _theta[0] = atan2(R[1][0], R[1][2]);
-                _theta[1] = acos(R[1][1]);
-                _theta[2] = atan2(R[0][1], -R[2][1]);
+                _items[0] = atan2(R[1][0], R[1][2]);
+                _items[1] = acos(R[1][1]);
+                _items[2] = atan2(R[0][1], -R[2][1]);
             }
             else if (ijk == 213)
             {
-                _theta[0] = atan2(R[2][0], R[2][2]);
-                _theta[1] = asin(-R[2][1]);
-                _theta[2] = atan2(R[0][1], R[1][1]);
+                _items[0] = atan2(R[2][0], R[2][2]);
+                _items[1] = asin(-R[2][1]);
+                _items[2] = atan2(R[0][1], R[1][1]);
             }
             else if (ijk == 231)
             {
-                _theta[0] = atan2(-R[0][2], R[0][0]);
-                _theta[1] = asin(R[0][1]);
-                _theta[2] = atan2(-R[2][1], R[1][1]);
+                _items[0] = atan2(-R[0][2], R[0][0]);
+                _items[1] = asin(R[0][1]);
+                _items[2] = atan2(-R[2][1], R[1][1]);
             }
             else if (ijk == 232)
             {
-                _theta[0] = atan2(R[1][2], -R[1][0]);
-                _theta[1] = acos(R[1][1]);
-                _theta[2] = atan2(R[2][1], R[0][1]);
+                _items[0] = atan2(R[1][2], -R[1][0]);
+                _items[1] = acos(R[1][1]);
+                _items[2] = atan2(R[2][1], R[0][1]);
             }
             else if (ijk == 312)
             {
-                _theta[0] = atan2(-R[1][0], R[1][1]);
-                _theta[1] = asin(R[1][2]);
-                _theta[2] = atan2(-R[0][2], R[2][2]);
+                _items[0] = atan2(-R[1][0], R[1][1]);
+                _items[1] = asin(R[1][2]);
+                _items[2] = atan2(-R[0][2], R[2][2]);
             }
             else if (ijk == 313)
             {
-                _theta[0] = atan2(R[2][0], -R[2][1]);
-                _theta[1] = acos(R[2][2]);
-                _theta[2] = atan2(R[0][2], R[1][2]);
+                _items[0] = atan2(R[2][0], -R[2][1]);
+                _items[1] = acos(R[2][2]);
+                _items[2] = atan2(R[0][2], R[1][2]);
             }
             else if (ijk == 321)
             {
-                _theta[0] = atan2(R[0][1], R[0][0]);
-                _theta[1] = asin(-R[0][2]);
-                _theta[2] = atan2(R[1][2], R[2][2]);
+                _items[0] = atan2(R[0][1], R[0][0]);
+                _items[1] = asin(-R[0][2]);
+                _items[2] = atan2(R[1][2], R[2][2]);
             }
             else if (ijk == 323)
             {
-                _theta[0] = atan2(R[2][0], -R[2][1]);
-                _theta[1] = acos(R[2][2]);
-                _theta[2] = atan2(R[0][2], R[1][2]);
+                _items[0] = atan2(R[2][0], -R[2][1]);
+                _items[1] = acos(R[2][2]);
+                _items[2] = atan2(R[0][2], R[1][2]);
             }
         }
     };
