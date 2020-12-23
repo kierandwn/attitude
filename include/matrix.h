@@ -62,11 +62,21 @@ inline int * generate_submatrix_indices_along_dimension (
   return new_indices;
 }
 
-// TODO
 // matrix (class)
+// Implementation of MxN matrix for attitude library. Matrix multiplication 
+// & 'division' operations encoded. Templated so that can be defined for an
+// element of any (primitive) type, precision can be application specific.
 //
+// Contruction based on the dimension sizes, followed by either a single 
+// parameter, or MxN list (funciton parameters or c-style list, row-major):
+//  - matrix<Tp> T(M, N, <MxN further args> );
+//  - matrix<Tp> T(M, N, Tp(val) );
+//  - matrix<Tp> T(M, N, carray[MxN] );
+// 
 // Usage:
-//	-
+//	> matrix<int> M(2, 2, 0, 1, -1, 0);
+//  > M == M.transpose(); // returns true
+//
 template<typename Tp>
 class matrix
 {
@@ -496,11 +506,22 @@ class matrix
 
 }; // matrix
 
-// TODO
 // square (class)
+// Implementation of NxN matrix for attitude library. Specific square matrix
+// operations encoded. Templated so that can be defined for an element of any
+// (primitive) type, precision can be application specific. Dervied from more
+// general MxN matrix class.
+// 
+// Contruction based on the dimension size, followed by either a single
+// parameter, or MxN list (funciton parameters or c-style list, row-major):
+//  - square<Tp> T(N, <NxN further args> );
+//  - square<Tp> T(N, Tp(val) );
+//  - square<Tp> T(N, carray[NxN] );
 //
 // Usage:
-//	-
+//	> square<int> M(2, 2, 1, 0, 0, 1);
+//  > 1 == M.determinant(); // returns true
+//
 template<typename Tp>
 class square : virtual public matrix<Tp> {
 	public:
@@ -668,11 +689,22 @@ class square : virtual public matrix<Tp> {
 }; // square matrix
 
 
-// TODO
 // vector (class)
-// 
+// Implementation of a N-dimensional vector as an 1xN dimensional matrix representation
+// for attitude library. Veector operations encoded as matrix operations. Templated so 
+// it can be defined for an element of any (primitive) type, precision can be application 
+// specific. Derived from more general MxN matrix class.
+//
+// Contruction based on the length, followed by either a single parameter, or MxN list
+// (function parameters or c-style list, row-major):
+//  - vector<Tp> T(N, <NxN further args> );
+//  - vector<Tp> T(N, Tp(val) );
+//  - vector<Tp> T(N, carray[NxN] );
+//
 // Usage:
-//	- 
+//	> square<int> M(2, 2, 1, 0, 0, 1);
+//  > 1 == M.determinant(); // returns true
+//
 template<typename Tp>
 class vector : virtual public matrix<Tp>
 {
