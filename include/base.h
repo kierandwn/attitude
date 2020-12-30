@@ -37,6 +37,7 @@ class description_set {
   
   Tp get_(int i) { return items_[i]; } 
   void set_(int i, Tp val) { items_[i] = val; } 
+  void set_(Tp vals[n_items]) { items_ = vals; } 
 
   bool update_dcm_ = true;
   virtual void dcm_from_parameters_() = 0;

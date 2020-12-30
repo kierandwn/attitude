@@ -43,7 +43,7 @@ int argmax(Tp * arr, int length) {
 }
 
 template<typename Tp> 
-Tp * shepherds_rule(matrix<Tp, 3, 3> matrix, Tp quaternion[4]) {
+void shepherds_rule(matrix<Tp, 3, 3> matrix, Tp quaternion[4]) {
   Tp _4q0q0 = 1 + matrix[0][0] + matrix[1][1] + matrix[2][2];
   Tp _4q1q1 = 1 + matrix[0][0] - matrix[1][1] - matrix[2][2];
   Tp _4q2q2 = 1 - matrix[0][0] + matrix[1][1] - matrix[2][2];
@@ -101,8 +101,8 @@ Tp * shepherds_rule(matrix<Tp, 3, 3> matrix, Tp quaternion[4]) {
       quaternion[3] = _q3;
     } break;
   }
-  return quaternion;
 }
 
 
 } // namespace atttitude;
+#endif // ATT_SHEPHERDS_H_

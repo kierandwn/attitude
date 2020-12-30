@@ -26,26 +26,12 @@
 #ifndef ATT_QUATERNION_H_
 #define ATT_QUATERNION_H_
 
-#include <cmath>
-
 #include "base.h"
 #include "matrix.h"
+#include "shepherds.h"
 
 namespace attitude {
 
-
-// Returns the index of the maximum value in array of type ElementType
-//  
-template<typename Tp>
-int argmax(Tp * arr, int length)
-{
-    int max_index = 0;
-
-    for (int k = 1; k < length; k++)
-        if (arr[k] > arr[max_index]){ max_index = k; }
-
-    return max_index;
-}
 
 template<typename Tp>
 class quaternion : public virtual description_set<Tp, 4> {
@@ -113,64 +99,11 @@ class quaternion : public virtual description_set<Tp, 4> {
 
  private:
   void parameters_from_dcm_() override {
-    // Shepherd's Rule
-    Tp _4q0q0 = 1 + matrix_[0][0] + matrix_[1][1] + matrix_[2][2];
-    Tp _4q1q1 = 1 + matrix_[0][0] - matrix_[1][1] - matrix_[2][2];
-    Tp _4q2q2 = 1 - matrix_[0][0] + matrix_[1][1] - matrix_[2][2];
-    Tp _4q3q3 = 1 - matrix_[0][0] - matrix_[1][1] + matrix_[2][2];
+    Tp quaternion[4];
+    shepherds_rule(matrix_, quaternion);
 
-    Tp vals[4]{abs(_4q0q0), abs(_4q1q1), abs(_4q2q2), abs(_4q3q3)};
-    int i = argmax(vals, 4);
+    set_(quaternion);
 
-    switch (i) { 
-     case 0: {
-      Tp _4q0q1 = matrix_[1][2] - matrix_[2][1];
-      Tp _4q0q2 = matrix_[2][0] - matrix_[0][2];
-      Tp _4q0q3 = matrix_[0][1] - matrix_[1][0];
-      Tp _q0 = sqrt(0.25 * _4q0q0);
-
-      set_(0, _q0);
-      set_(1, 0.25 * _4q0q1 / _q0);
-      set_(2, 0.25 * _4q0q2 / _q0);
-      set_(3, 0.25 * _4q0q3 / _q0);
-     } break;
-
-     case 1: {
-      Tp _4q0q1 = matrix_[1][2] - matrix_[2][1];
-      Tp _4q1q2 = matrix_[0][1] + matrix_[1][0];
-      Tp _4q1q3 = matrix_[2][0] + matrix_[0][2];
-      Tp _q1 = sqrt(0.25 * _4q1q1);
-
-      set_(0, 0.25 * _4q0q1 / _q1);
-      set_(1, _q1);
-      set_(2, 0.25 * _4q1q2 / _q1);
-      set_(3, 0.25 * _4q1q3 / _q1);
-     } break;
-
-     case 2: {
-      Tp _4q0q2 = matrix_[2][0] - matrix_[0][2];
-      Tp _4q1q2 = matrix_[0][1] + matrix_[1][0];
-      Tp _4q2q3 = matrix_[1][2] + matrix_[2][1];
-      Tp _q2 = sqrt(0.25 * _4q2q2);
-
-      set_(0, 0.25 * _4q0q2 / _q2);
-      set_(1, 0.25 * _4q1q2 / _q2);
-      set_(2, _q2);
-      set_(3, 0.25 * _4q2q3 / _q2);
-     } break;
-
-     case 3: {
-      Tp _4q0q3 = matrix_[0][1] - matrix_[1][0];
-      Tp _4q1q3 = matrix_[2][0] + matrix_[0][2];
-      Tp _4q2q3 = matrix_[1][2] + matrix_[2][1];
-      Tp _q3 = sqrt(0.25 * _4q3q3);
-
-      set_(0, 0.25 * _4q0q3 / _q3);
-      set_(1, 0.25 * _4q1q3 / _q3);
-      set_(2, 0.25 * _4q2q3 / _q3);
-      set_(3, _q3);
-     } break;
-    }
     update_dcm_ = false;
   }
 

@@ -123,7 +123,7 @@ class mrp : public virtual description_set<Tp, 3> {
  private:
   void parameters_from_dcm_() override {
     Tp quaternion[4];
-    quaternion = shepherds_rule(matrix_, quaternion);
+    shepherds_rule(matrix_, quaternion);
 
     set_([
         quaternion[1] / quaternion[0],

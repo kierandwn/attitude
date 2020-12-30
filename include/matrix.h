@@ -306,9 +306,7 @@ class matrix {
   // Returns true if all elements match the value.
   bool operator==(Tp val) {
     for (int i = 0; i < size_; ++i)
-      if (!(get_(i) == val)) {
-        return false;
-      }
+      if (!(get_(i) == val)) { return false; } 
 
     return true;
   }
@@ -317,20 +315,16 @@ class matrix {
   // Returns true if all elements are the same.
   bool operator==(matrix<Tp, cols, rows> M) {
     for (int i = 0; i < size_; ++i)
-      if (!(get_(i) == M(i))) {
-        return false;
-      }
-
-    return true;
+      if (!(get_(i) == M(i))) { return false; }
+     
+    return true; 
   }
 
   // > (function, operator)
   // Returns true if all elements are greater than the value.
   bool operator>(Tp val) {
     for (int i = 0; i < size_; ++i)
-      if (!(get_(i) > val)) {
-        return false;
-      }
+      if (!(get_(i) > val)) { return false; }
 
     return true;
   }
@@ -340,9 +334,7 @@ class matrix {
   // elements.
   bool operator>(matrix<Tp, cols, rows> M) {
     for (int i = 0; i < size_; ++i)
-      if (!(get_(i) > M(i))) {
-        return false;
-      }
+      if (!(get_(i) > M(i))) { return false; }
 
     return true;
   }
@@ -351,9 +343,7 @@ class matrix {
   // Returns true if all elements are greater than or equal to the value.
   bool operator>=(Tp val) {
     for (int i = 0; i < size_; ++i)
-      if (!(get_(i) >= val)) {
-        return false;
-      }
+      if (!(get_(i) >= val)) { return false; }
 
     return true;
   }
@@ -363,9 +353,7 @@ class matrix {
   // corresponding right-hand elements.
   bool operator>=(matrix<Tp, cols, rows> M) {
     for (int i = 0; i < size_; ++i)
-      if (!(get_(i) >= M(i))) {
-        return false;
-      }
+      if (!(get_(i) >= M(i))) { return false; }
 
     return true;
   }
@@ -374,10 +362,8 @@ class matrix {
   // Returns true if all elements are less than the value.
   bool operator<(Tp val) {
     for (int i = 0; i < size_; ++i)
-      if (!(get_(i) < val)) {
-        return false;
-      }
-
+      if (!(get_(i) < val)) { return false; }
+     
     return true;
   }
 
@@ -386,9 +372,7 @@ class matrix {
   // elements.
   bool operator<(matrix<Tp, cols, rows> M) {
     for (int i = 0; i < size_; ++i)
-      if (!(get_(i) < M(i))) {
-        return false;
-      }
+      if (!(get_(i) < M(i))) { return false; }
 
     return true;
   }
@@ -397,9 +381,7 @@ class matrix {
   // Returns true if all elements are less than or equal to the value.
   bool operator<=(Tp val) {
     for (int i = 0; i < size_; ++i)
-      if (!(get_(i) <= val)) {
-        return false;
-      }
+      if (!(get_(i) <= val)) { return false; }
 
     return true;
   }
@@ -409,9 +391,7 @@ class matrix {
   // right-hand elements.
   bool operator<=(matrix<Tp, cols, rows> M) {
     for (int i = 0; i < size_; ++i)
-      if (!(get_(i) <= M(i))) {
-        return false;
-      }
+      if (!(get_(i) <= M(i))) { return false; }
 
     return true;
   }
@@ -422,9 +402,7 @@ class matrix {
 
   // -------------------- Assignment. --------------------
   matrix<Tp, rows, cols>& operator= (matrix<Tp, rows, cols>& M) {
-    for (int i = 0; i < size_; ++i) {
-      set_(i, M(i));
-    }
+    for (int i = 0; i < size_; ++i) { set_(i, M(i)); }
     return *(this);
   }
 
