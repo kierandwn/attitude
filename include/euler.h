@@ -1,181 +1,199 @@
-#ifndef EULER_H
-#define EULER_H
+// Copyright (c) 2020 Kieran Downie. All rights reserved.
+//
+// This file is part of attitude.
+//
+// attitude is free software : you can redistribute it and /
+// or modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation,
+// either version 3 of the License,
+// or (at your option) any later version.
+//
+// attitude is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with attitude.  If not, see <https://www.gnu.org/licenses/>.
+//
+// -
+// euler.h
+// Contains concrete definition for euler angles attitude description parameter 
+// set.
+//
+// File namespace attitude::
+//
+#ifndef ATT_EULER_H_
+#define ATT_EULER_H_
 
 #include <cmath>
 
-#include "dcm.h"
+#include "base.h"
+#include "matrix.h"
 
-namespace attitude
+namespace attitude {
+
+
+template <typename Tp>
+class euler : public virtual description_set<Tp, 3> 
 {
-    template <typename T>
-    class euler_
-    {
-    private:
-        T _items[3] = { 0 };
-        T _get(int i) { return _items[i]; }
+private:
+  const uint16_t ijk_;
 
-        dcm_<T> _R = { T(1.), T(0.), T(0.),
-                       T(0.), T(1.), T(0.),
-                       T(0.), T(0.), T(1.) };
+public:
+  euler(uint16_t ijk=123) : ijk_(ijk) {}
 
-        const uint16_t _ijk = 123;
+  euler(Tp t1, Tp t2, Tp t3, uint16_t ijk=123) 
+      : description_set{ t1, t2, t3 },
+        ijk_(ijk) 
+  { dcm_from_parameters_(); }
 
-    public:
-        euler_() {}
-        euler_(T t1, T t2, T t3) : _items{ t1, t2, t3 },
-                                   _R(to_dcm(*this)) {}
+  template <typename Tp2, size_t n2_items>
+  euler(description_set<Tp2, n2_items> set) : description_set(set) 
+  { parameters_from_dcm_(); }
 
-        euler_(T t1, T t2, T t3, uint16_t ijk) : _items{ t1, t2, t3 },
-                                                _ijk(ijk),
-                                                _R(to_dcm(*this))
-        {}
+  euler(::matrix<Tp, 3, 3> R, uint16_t ijk=123) 
+      : description_set(R),
+        ijk_(ijk)
+  { parameters_from_dcm_(); }
 
-        euler_(dcm_<T> R, uint16_t ijk) : _ijk(ijk),
-                                          _R(R)
+  // -------------------- Euler Addition/Subtraction. --------------------
+  euler<Tp> operator+ (euler<Tp> theta) {
+    return euler<Tp>(matrix() * theta.matrix(), order());
+  }
+
+  euler<Tp> operator- (euler<Tp> theta) {
+    return euler<Tp>(matrix() / theta.matrix(), order());
+  }
+
+  euler<Tp> * operator+= (euler<Tp> theta) {
+    matrix_ *= theta.matrix();
+    parameters_from_dcm_();
+    return this;
+  }
+
+  euler<Tp> * operator-= (euler<Tp> theta) {
+    matrix_ /= theta.matrix();
+    parameters_from_dcm_();
+    return this;
+  }
+
+  // -------------------- Comparison. --------------------
+  bool operator== (euler<Tp> theta) { return matrix() == theta.matrix(); }
+ 
+  uint16_t order () { return ijk_; }
+
+  ::matrix<Tp, 3, 3> dke() override {
+    switch (order()) {
+      case 123:
+        return
         {
-            extract_euler_from_dcm(R, ijk);
-        }
-
-        uint16_t order() { return _ijk; }
-        dcm_<T> dcm() { return _R; }
-        euler_<T> reverse() { return euler_<T>( dcm().reverse(), order() ); }
-        
-        euler_<T> operator+(euler_<T> theta)
+                 Tp(cos(get_(2)) / cos(get_(1))), Tp(-1 * sin(get_(2)) / cos(get_(1))), Tp(0.), 
+                                Tp(sin(get_(2))),                     Tp(cos(get_(2))), Tp(0.),
+            Tp(-1 * cos(get_(2)) * tan(get_(1))),      Tp(sin(get_(2)) * tan(get_(1))), Tp(1.)
+        };
+      
+      case 321:
+        return
         {
-            dcm_<T> R = dcm() + theta.dcm();
-            return euler_<T>(R, order());
-        }
-
-        euler_<T> operator-(euler_<T> theta)
-        {
-            dcm_<T> R = dcm() - theta.dcm();
-            return euler_<T>(R, order());
-        }
-
-        euler_<T>* operator+=(euler_<T> theta)
-        {
-            _R += theta.dcm();
-            extract_euler_from_dcm(_R, order());
-            return this;
-        }
-
-        euler_<T>* operator-=(euler_<T> theta)
-        {
-            _R -= theta.dcm();
-            extract_euler_from_dcm(_R, order());
-            return this;
-        }
-
-        T operator[](int i) { return _get(i); }
-
-        // Comparison
-        bool operator==(euler_<T> theta) { return dcm() == theta.dcm(); }
-        bool operator==(dcm_<T> R) { return R == dcm(); }
-
-        void extract_euler_from_dcm(dcm_<T> R, uint16_t ijk)
-        {
-            if (ijk == 121)
-            {
-                _items[0] = atan2(-R[0][1], R[0][2]);
-                _items[1] = acos(R[0][0]);
-                _items[2] = atan2(R[1][0], R[2][0]);
-            }
-            else if (ijk == 123)
-            {
-                _items[0] = atan2(-R[2][1], R[2][2]);
-                _items[1] = asin(R[2][0]);
-                _items[2] = atan2(-R[1][0], R[0][0]);
-            }
-            else if (ijk == 131)
-            {
-                _items[0] = atan2(R[0][2], R[0][1]);
-                _items[1] = acos(R[0][0]);
-                _items[2] = atan2(R[2][0], -R[1][0]);
-            }
-            else if (ijk == 132)
-            {
-                _items[0] = atan2(R[1][2], R[1][1]);
-                _items[1] = asin(-R[1][0]);
-                _items[2] = atan2(R[2][0], R[0][0]);
-            }
-            else if (ijk == 212)
-            {
-                _items[0] = atan2(R[1][0], R[1][2]);
-                _items[1] = acos(R[1][1]);
-                _items[2] = atan2(R[0][1], -R[2][1]);
-            }
-            else if (ijk == 213)
-            {
-                _items[0] = atan2(R[2][0], R[2][2]);
-                _items[1] = asin(-R[2][1]);
-                _items[2] = atan2(R[0][1], R[1][1]);
-            }
-            else if (ijk == 231)
-            {
-                _items[0] = atan2(-R[0][2], R[0][0]);
-                _items[1] = asin(R[0][1]);
-                _items[2] = atan2(-R[2][1], R[1][1]);
-            }
-            else if (ijk == 232)
-            {
-                _items[0] = atan2(R[1][2], -R[1][0]);
-                _items[1] = acos(R[1][1]);
-                _items[2] = atan2(R[2][1], R[0][1]);
-            }
-            else if (ijk == 312)
-            {
-                _items[0] = atan2(-R[1][0], R[1][1]);
-                _items[1] = asin(R[1][2]);
-                _items[2] = atan2(-R[0][2], R[2][2]);
-            }
-            else if (ijk == 313)
-            {
-                _items[0] = atan2(R[2][0], -R[2][1]);
-                _items[1] = acos(R[2][2]);
-                _items[2] = atan2(R[0][2], R[1][2]);
-            }
-            else if (ijk == 321)
-            {
-                _items[0] = atan2(R[0][1], R[0][0]);
-                _items[1] = asin(-R[0][2]);
-                _items[2] = atan2(R[1][2], R[2][2]);
-            }
-            else if (ijk == 323)
-            {
-                _items[0] = atan2(R[2][0], -R[2][1]);
-                _items[1] = acos(R[2][2]);
-                _items[2] = atan2(R[0][2], R[1][2]);
-            }
-        }
-    };
-
-    // Conversions
-    template<typename T>
-    dcm_<T> to_dcm(euler_<T> theta)
-    {
-        uint16_t ijk = theta.order();
-
-        uint8_t i = ijk / 100;
-        uint8_t j = (ijk - (i * 100)) / 10;
-        uint8_t k = (ijk - (i * 100) - (j * 10));
-
-        dcm_<T> R = AXIS(i, theta[0]);
-        R += AXIS(j, theta[1]);
-        R += AXIS(k, theta[2]);
-        return R;
+            Tp(0.),      Tp(sin(get_(2)) / cos(get_(1))), Tp(cos(get_(2)) / cos(get_(1))),
+            Tp(0.),                     Tp(cos(get_(2))),           Tp(-1 * sin(get_(2))),
+            Tp(1.), Tp(-1 * sin(get_(2)) * tan(get_(1))), Tp(cos(get_(2)) * tan(get_(1)))
+        };
+      
+      default:
+        return EYE<Tp, 3>(); // identity
     }
-}
+  }
 
-template<typename T>
-void display(attitude::euler_<T> theta)
+ private:
+  void parameters_from_dcm_ () override {
+    switch (order()) {
+      case 121: {
+        items_[0] = atan2(-matrix_[0][1], matrix_[0][2]);
+        items_[1] = acos(matrix_[0][0]);
+        items_[2] = atan2(matrix_[1][0], matrix_[2][0]);
+      } break;
+      case 123: {
+        items_[0] = atan2(-matrix_[2][1], matrix_[2][2]);
+        items_[1] = asin(matrix_[2][0]);
+        items_[2] = atan2(-matrix_[1][0], matrix_[0][0]);
+      } break;
+      case 131: {
+        items_[0] = atan2(matrix_[0][2], matrix_[0][1]);
+        items_[1] = acos(matrix_[0][0]);
+        items_[2] = atan2(matrix_[2][0], -matrix_[1][0]);
+      } break;
+      case 132: {
+        items_[0] = atan2(matrix_[1][2], matrix_[1][1]);
+        items_[1] = asin(-matrix_[1][0]);
+        items_[2] = atan2(matrix_[2][0], matrix_[0][0]);
+      } break;
+      case 212: {
+        items_[0] = atan2(matrix_[1][0], matrix_[1][2]);
+        items_[1] = acos(matrix_[1][1]);
+        items_[2] = atan2(matrix_[0][1], -matrix_[2][1]);
+      } break;
+      case 213: {
+        items_[0] = atan2(matrix_[2][0], matrix_[2][2]);
+        items_[1] = asin(-matrix_[2][1]);
+        items_[2] = atan2(matrix_[0][1], matrix_[1][1]);
+      } break;
+      case 231: {
+        items_[0] = atan2(-matrix_[0][2], matrix_[0][0]);
+        items_[1] = asin(matrix_[0][1]);
+        items_[2] = atan2(-matrix_[2][1], matrix_[1][1]);
+      } break;
+      case 232: {
+        items_[0] = atan2(matrix_[1][2], -matrix_[1][0]);
+        items_[1] = acos(matrix_[1][1]);
+        items_[2] = atan2(matrix_[2][1], matrix_[0][1]);
+      } break;
+      case 312: {
+        items_[0] = atan2(-matrix_[1][0], matrix_[1][1]);
+        items_[1] = asin(matrix_[1][2]);
+        items_[2] = atan2(-matrix_[0][2], matrix_[2][2]);
+      } break;
+      case 313: {
+        items_[0] = atan2(matrix_[2][0], -matrix_[2][1]);
+        items_[1] = acos(matrix_[2][2]);
+        items_[2] = atan2(matrix_[0][2], matrix_[1][2]);
+      } break;
+      case 321: {
+        items_[0] = atan2(matrix_[0][1], matrix_[0][0]);
+        items_[1] = asin(-matrix_[0][2]);
+        items_[2] = atan2(matrix_[1][2], matrix_[2][2]);
+      } break;
+      case 323: {
+        items_[0] = atan2(matrix_[2][0], -matrix_[2][1]);
+        items_[1] = acos(matrix_[2][2]);
+        items_[2] = atan2(matrix_[0][2], matrix_[1][2]);
+      } break;
+    }
+    update_dcm_ = false;
+  }
+
+  void dcm_from_parameters_ () override {
+    uint8_t i = ijk_ / 100;
+    uint8_t j = (ijk_ - (i * 100)) / 10;
+    uint8_t k = (ijk_ - (i * 100) - (j * 10));
+
+    matrix_  = dcm::AXIS(i, items_[0]);
+    matrix_ *= dcm::AXIS(j, items_[1]);
+    matrix_ *= dcm::AXIS(k, items_[2]);
+    update_dcm_ = false;
+  }
+};
+
+} // namespace attitude
+
+template<typename Tp>
+void display(attitude::euler<Tp> theta)
 {
-    std::cout
-        << "[ "
-        << theta[0] << ","
-        << theta[1] << ","
-        << theta[2]
-        << " ]"
-        << std::endl;
+  printf("euler<%d>{%d, %d, %d}\n", theta.order(), 
+                                        theta[0], 
+                                        theta[1],
+                                        theta[2]);
 }
 
-#endif // EULER_H
+#endif // ATT_EULER_H_

@@ -1,189 +1,201 @@
-#ifndef EULER_H
-#define EULER_H
+// Copyright (c) 2020 Kieran Downie. All rights reserved.
+//
+// This file is part of attitude.
+//
+// attitude is free software : you can redistribute it and /
+// or modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation,
+// either version 3 of the License,
+// or (at your option) any later version.
+//
+// attitude is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with attitude.  If not, see <https://www.gnu.org/licenses/>.
+//
+// -
+// quaternion.h
+// Contains concrete definition for quaternion (euler parameter) attitude 
+// description parameter set.
+//
+// File namespace attitude::
+//
+#ifndef ATT_QUATERNION_H_
+#define ATT_QUATERNION_H_
 
 #include <cmath>
 
-#include "dcm.h"
+#include "base.h"
 #include "matrix.h"
 
-namespace attitude
+namespace attitude {
+
+
+// Returns the index of the maximum value in array of type ElementType
+//  
+template<typename Tp>
+int argmax(Tp * arr, int length)
 {
-    template<typename T>
-    int argmax(T* arr, int length)
-    {
-        int max_index = 0;
+    int max_index = 0;
 
-        for (int k = 1; k < length; k++)
-            if (arr[k] > arr[max_index]){ max_index = k; }
+    for (int k = 1; k < length; k++)
+        if (arr[k] > arr[max_index]){ max_index = k; }
 
-        return max_index;
-    }
-
-    template<typename T>
-    class quaternion_
-    {
-    private:
-        T _items[4] = { T(1.), T(0.), T(0.), T(0.) };
-
-        dcm_<T> _R  = { T(1.), T(0.), T(0.),
-                        T(0.), T(1.), T(0.),
-                        T(0.), T(0.), T(1.) };
-
-        T _get(int i) { return _items[i]; }
-        void _set(int i, T val) { _items[i] = val; }
-
-        linalg::square<T> addition_matrix()
-        {
-            return matrix::square<T>(4, 
-                q[0], -1. * q[1], -1. * q[2], -1. * q[3],
-                q[1],       q[0],       q[3],       q[2],
-                q[2], -1. * q[3],       q[0],       q[1],
-                q[3],       q[2], -1. * q[1],       q[0] );
-        }
-
-    public:
-        quaternion_() {}
-
-        quaternion_(T q0, T q1, T q2, T q3) : _items{ q0, q1, q2, q3 },
-                                              _R(to_dcm(q0, q1, q2, q3)) {}
-
-        quaternion_(dcm_<T> R) : _R(R) { from_dcm(R); }
-
-        void from_dcm(dcm_<T> R)
-        {
-            // Shepherd's Rule
-            T _4q0q0 = 1 + R[0][0] + R[1][1] + R[2][2];
-            T _4q1q1 = 1 + R[0][0] - R[1][1] - R[2][2];
-            T _4q2q2 = 1 - R[0][0] + R[1][1] - R[2][2];
-            T _4q3q3 = 1 - R[0][0] - R[1][1] + R[2][2];
-
-            T vals[4]{ abs(_4q0q0), abs(_4q1q1), abs(_4q2q2), abs(_4q3q3) };
-            int i = argmax(vals, 4);
-
-            if (i == 0)
-            {
-                T _4q0q1 = R[1][2] - R[2][1];
-                T _4q0q2 = R[2][0] - R[0][2];
-                T _4q0q3 = R[0][1] - R[1][0];
-                T _q0 = sqrt(0.25 * _4q0q0);
-
-                _set(0, _q0);
-                _set(1, 0.25 * _4q0q1 / _q0);
-                _set(2, 0.25 * _4q0q2 / _q0);
-                _set(3, 0.25 * _4q0q3 / _q0);
-            }
-            else if (i == 1)
-            {
-                T _4q0q1 = R[1][2] - R[2][1];
-                T _4q1q2 = R[0][1] + R[1][0];
-                T _4q1q3 = R[2][0] + R[0][2];
-                T _q1 = sqrt(0.25 * _4q1q1);
-
-                _set(0, 0.25 * _4q0q1 / _q1);
-                _set(1, _q1);
-                _set(2, 0.25 * _4q1q2 / _q1);
-                _set(3, 0.25 * _4q1q3 / _q1);
-            }
-            else if (i == 2)
-            {
-                T _4q0q2 = R[2][0] - R[0][2];
-                T _4q1q2 = R[0][1] + R[1][0];
-                T _4q2q3 = R[1][2] + R[2][1];
-                T _q2 = sqrt(0.25 * _4q2q2);
-
-                _set(0, 0.25 * _4q0q2 / _q2);
-                _set(1, 0.25 * _4q1q2 / _q2);
-                _set(2, _q2);
-                _set(3, 0.25 * _4q2q3 / _q2);
-            }
-            else if (i == 3)
-            {
-                T _4q0q3 = R[0][1] - R[1][0];
-                T _4q1q3 = R[2][0] + R[0][2];
-                T _4q2q3 = R[1][2] + R[2][1];
-                T _q3 = sqrt(0.25 * _4q3q3);
-
-                _set(0, 0.25 * _4q0q3 / _q3);
-                _set(1, 0.25 * _4q1q3 / _q3);
-                _set(2, 0.25 * _4q2q3 / _q3);
-                _set(3, _q3);
-            }
-        }
-
-        dcm_<T> dcm() { return _R; }
-        quaternion_<T> reverse() { return quaternion_<T>( dcm().reverse() ); }
-        
-        quaternion_<T> operator+(quaternion_<T> q)
-        {
-            return quaternion_<T>( 
-                q[0] * _get(0) + -1. * q[1] * _get(1) + -1. * q[2] * _get(2) + -1. * q[3] * _get(3),
-                q[1] * _get(0) +       q[0] * _get(1) +       q[3] * _get(2) +       q[2] * _get(3),
-                q[2] * _get(0) + -1. * q[3] * _get(1) +       q[0] * _get(2) +       q[1] * _get(3),
-                q[3] * _get(0) +       q[2] * _get(1) + -1. * q[1] * _get(2) +       q[0] * _get(3) );
-        }
-        
-        //quaternion_<T> operator+(quaternion_<T> q) { return q.addition_matrix() * _q; }
-
-        quaternion_<T> operator-(quaternion_<T> q)
-        {
-            return quaternion_<T>( 
-                      q[0] * _get(0) +       q[1] * _get(1) +       q[2] * _get(2) +       q[3] * _get(3),
-                -1. * q[1] * _get(0) +       q[0] * _get(1) + -1. * q[3] * _get(2) +       q[2] * _get(3),
-                -1. * q[2] * _get(0) +       q[3] * _get(1) +       q[0] * _get(2) + -1. * q[1] * _get(3),
-                -1. * q[3] * _get(0) + -1. * q[2] * _get(1) +       q[1] * _get(2) +       q[0] * _get(3) );
-        }
-
-        quaternion_<T>* operator+=(quaternion_<T> q)
-        {
-            quaternion_( // TODO
-                q[0] * _get(0) + -1. * q[1] * _get(1) + -1. * q[2] * _get(2) + -1. * q[3] * _get(3),
-                q[1] * _get(0) +       q[0] * _get(1) +       q[3] * _get(2) +       q[2] * _get(3),
-                q[2] * _get(0) + -1. * q[3] * _get(1) +       q[0] * _get(2) +       q[1] * _get(3),
-                q[3] * _get(0) +       q[2] * _get(1) + -1. * q[1] * _get(2) +       q[0] * _get(3) );
-            return this;
-        }
-
-        quaternion_<T>* operator-=(quaternion_<T> q)
-        {
-            quaternion_( 
-                      q[0] * _get(0) +       q[1] * _get(1) +       q[2] * _get(2) +       q[3] * _get(3),
-                -1. * q[1] * _get(0) +       q[0] * _get(1) + -1. * q[3] * _get(2) +       q[2] * _get(3),
-                -1. * q[2] * _get(0) +       q[3] * _get(1) +       q[0] * _get(2) + -1. * q[1] * _get(3),
-                -1. * q[3] * _get(0) + -1. * q[2] * _get(1) +       q[1] * _get(2) +       q[0] * _get(3) );
-            return this;
-        }
-
-        T operator[](int i) { return _get(i); } 
-
-        // Comparison
-        bool operator==(quaternion_<T> q) { return dcm() == q.dcm(); }
-        bool operator==(dcm_<T> R) { return dcm() == R; }
-    };
-
-    // Conversions
-    template<typename T>
-    dcm_<T> to_dcm(quaternion_<T> q)
-    {
-        return dcm_<T>(
-            pow(q[0], 2) + pow(q[1], 2) - pow(q[2], 2) - pow(q[3], 2.), 2 * (q[1] * q[2] + q[0] * q[3]), 2. * (q[1] * q[3] - q[0] * q[2]),
-            2. * (q[1] * q[2] - q[0] * q[3]), pow(q[0], 2) - pow(q[1], 2) + pow(q[2], 2) - pow(q[3], 2), 2. * (q[2] * q[3] + q[0] * q[1]),
-            2. * (q[1] * q[3] + q[0] * q[2]), 2. * (q[2] * q[3] - q[0] * q[1]), pow(q[0], 2) - pow(q[1], 2) - pow(q[2], 2) + pow(q[3], 2)
-        );
-    }
-
-    template<typename T>
-    dcm_<T> to_dcm(T q0, T q1, T q2, T q3)
-    {
-        return dcm_<T>(
-            pow(q0, 2) + pow(q1, 2) - pow(q2, 2) - pow(q3, 2), 2 * (q1 * q2 + q0 * q3), 2. * (q1 * q3 - q0 * q2),
-            2. * (q1 * q2 - q0 * q3), pow(q0, 2) - pow(q1, 2) + pow(q2, 2) - pow(q3, 2), 2. * (q2 * q3 + q0 * q1),
-            2. * (q1 * q3 + q0 * q2), 2. * (q2 * q3 - q0 * q1), pow(q0, 2) - pow(q1, 2) - pow(q2, 2) + pow(q3, 2)
-        );
-    }
+    return max_index;
 }
 
+template<typename Tp>
+class quaternion : public virtual description_set<Tp, 4> {
+ public:
+  quaternion() {}
+  
+  quaternion(Tp q0, Tp q1, Tp q2, Tp q3) : description_set{q0, q1, q2, q3} 
+  { dcm_from_parameters_(); }
+  
+  quaternion(::matrix<Tp, 3, 3> R) : description_set(R) 
+  { parameters_from_dcm_(); }
+
+  template <typename Tp2, size_t n2_items>
+  quaternion(description_set<Tp2, n2_items> set) : description_set(set) {}
+
+  ::matrix<Tp, 4, 4> dke() override {
+    return ::matrix<Tp, 4, 4>{
+        get_(0), -1 * get_(1), -1 * get_(2), -1 * get_(3),
+        get_(1),      get_(0), -1 * get_(3),      get_(2),
+        get_(2),      get_(3),      get_(0), -1 * get_(1),
+        get_(3), -1 * get_(2),      get_(1),      get_(0)
+    } * 0.5;
+  }
+
+  quaternion<Tp> operator+ (quaternion<Tp> q) {
+    return quaternion<Tp> {
+        q[0] * get_(0) + -1. * q[1] * get_(1) + -1. * q[2] * get_(2) + -1. * q[3] * get_(3),
+        q[1] * get_(0) +       q[0] * get_(1) +       q[3] * get_(2) +       q[2] * get_(3),
+        q[2] * get_(0) + -1. * q[3] * get_(1) +       q[0] * get_(2) +       q[1] * get_(3),
+        q[3] * get_(0) +       q[2] * get_(1) + -1. * q[1] * get_(2) +       q[0] * get_(3)
+    };
+  }
+
+  quaternion<Tp> operator- (quaternion<Tp> q)
+  {
+    return quaternion<Tp> {
+              q[0] * get_(0) +       q[1] * get_(1) +       q[2] * get_(2) +       q[3] * get_(3),
+        -1. * q[1] * get_(0) +       q[0] * get_(1) + -1. * q[3] * get_(2) +       q[2] * get_(3),
+        -1. * q[2] * get_(0) +       q[3] * get_(1) +       q[0] * get_(2) + -1. * q[1] * get_(3),
+        -1. * q[3] * get_(0) + -1. * q[2] * get_(1) +       q[1] * get_(2) +       q[0] * get_(3)
+    };
+  }
+
+  quaternion<Tp> * operator+= (quaternion<Tp> q)
+    {
+      set_([
+          q[0] * get_(0) + -1. * q[1] * get_(1) + -1. * q[2] * get_(2) + -1. * q[3] * get_(3),
+          q[1] * get_(0) +       q[0] * get_(1) +       q[3] * get_(2) +       q[2] * get_(3),
+          q[2] * get_(0) + -1. * q[3] * get_(1) +       q[0] * get_(2) +       q[1] * get_(3),
+          q[3] * get_(0) +       q[2] * get_(1) + -1. * q[1] * get_(2) +       q[0] * get_(3)
+      ]);
+      return this;
+    }
+
+    quaternion<Tp> * operator-= (quaternion<Tp> q)
+    {
+      set_([
+                  q[0] * get_(0) +       q[1] * get_(1) +       q[2] * get_(2) +       q[3] * get_(3),
+            -1. * q[1] * get_(0) +       q[0] * get_(1) + -1. * q[3] * get_(2) +       q[2] * get_(3),
+            -1. * q[2] * get_(0) +       q[3] * get_(1) +       q[0] * get_(2) + -1. * q[1] * get_(3),
+            -1. * q[3] * get_(0) + -1. * q[2] * get_(1) +       q[1] * get_(2) +       q[0] * get_(3)
+      ]);
+      return this;
+    }
+
+ private:
+  void parameters_from_dcm_() override {
+    // Shepherd's Rule
+    Tp _4q0q0 = 1 + matrix_[0][0] + matrix_[1][1] + matrix_[2][2];
+    Tp _4q1q1 = 1 + matrix_[0][0] - matrix_[1][1] - matrix_[2][2];
+    Tp _4q2q2 = 1 - matrix_[0][0] + matrix_[1][1] - matrix_[2][2];
+    Tp _4q3q3 = 1 - matrix_[0][0] - matrix_[1][1] + matrix_[2][2];
+
+    Tp vals[4]{abs(_4q0q0), abs(_4q1q1), abs(_4q2q2), abs(_4q3q3)};
+    int i = argmax(vals, 4);
+
+    switch (i) { 
+     case 0: {
+      Tp _4q0q1 = matrix_[1][2] - matrix_[2][1];
+      Tp _4q0q2 = matrix_[2][0] - matrix_[0][2];
+      Tp _4q0q3 = matrix_[0][1] - matrix_[1][0];
+      Tp _q0 = sqrt(0.25 * _4q0q0);
+
+      set_(0, _q0);
+      set_(1, 0.25 * _4q0q1 / _q0);
+      set_(2, 0.25 * _4q0q2 / _q0);
+      set_(3, 0.25 * _4q0q3 / _q0);
+     } break;
+
+     case 1: {
+      Tp _4q0q1 = matrix_[1][2] - matrix_[2][1];
+      Tp _4q1q2 = matrix_[0][1] + matrix_[1][0];
+      Tp _4q1q3 = matrix_[2][0] + matrix_[0][2];
+      Tp _q1 = sqrt(0.25 * _4q1q1);
+
+      set_(0, 0.25 * _4q0q1 / _q1);
+      set_(1, _q1);
+      set_(2, 0.25 * _4q1q2 / _q1);
+      set_(3, 0.25 * _4q1q3 / _q1);
+     } break;
+
+     case 2: {
+      Tp _4q0q2 = matrix_[2][0] - matrix_[0][2];
+      Tp _4q1q2 = matrix_[0][1] + matrix_[1][0];
+      Tp _4q2q3 = matrix_[1][2] + matrix_[2][1];
+      Tp _q2 = sqrt(0.25 * _4q2q2);
+
+      set_(0, 0.25 * _4q0q2 / _q2);
+      set_(1, 0.25 * _4q1q2 / _q2);
+      set_(2, _q2);
+      set_(3, 0.25 * _4q2q3 / _q2);
+     } break;
+
+     case 3: {
+      Tp _4q0q3 = matrix_[0][1] - matrix_[1][0];
+      Tp _4q1q3 = matrix_[2][0] + matrix_[0][2];
+      Tp _4q2q3 = matrix_[1][2] + matrix_[2][1];
+      Tp _q3 = sqrt(0.25 * _4q3q3);
+
+      set_(0, 0.25 * _4q0q3 / _q3);
+      set_(1, 0.25 * _4q1q3 / _q3);
+      set_(2, 0.25 * _4q2q3 / _q3);
+      set_(3, _q3);
+     } break;
+    }
+    update_dcm_ = false;
+  }
+
+  void dcm_from_parameters_() override {
+    // Row 1
+    matrix_[0][0] = pow(get_(0), 2) + pow(get_(1), 2) - pow(get_(2), 2) - pow(get_(3), 2.);
+    matrix_[0][1] = 2 * (get_(1) * get_(2) + get_(0) * get_(3));
+    matrix_[0][2] = 2. * (get_(1) * get_(3) - get_(0) * get_(2));
+    // Row 2
+    matrix_[1][0] = 2. * (get_(1) * get_(2) - get_(0) * get_(3));
+    matrix_[1][1] = pow(get_(0), 2) - pow(get_(1), 2) + pow(get_(2), 2) - pow(get_(3), 2);
+    matrix_[1][2] = 2. * (get_(2) * get_(3) + get_(0) * get_(1));
+    // Row 3
+    matrix_[2][0] = 2. * (get_(1) * get_(3) + get_(0) * get_(2));
+    matrix_[2][1] = 2. * (get_(2) * get_(3) - get_(0) * get_(1));
+    matrix_[2][2] = pow(get_(0), 2) - pow(get_(1), 2) - pow(get_(2), 2) + pow(get_(3), 2);
+    update_dcm_ = false;
+  }
+};
+
+
+} // namespace attitude
+
 template<typename T>
-void display(attitude::quaternion_<T> q)
+void display(attitude::quaternion<T> q)
 {
     std::cout
         << "[ "
@@ -195,4 +207,4 @@ void display(attitude::quaternion_<T> q)
         << std::endl;
 }
 
-#endif // EULER_H
+#endif  // ATT_QUATERNION_H_

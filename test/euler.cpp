@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "include/helpers.h"
+#include "include/helper.h"
 #include "euler.h"
 
 using namespace attitude;
@@ -8,38 +8,39 @@ using namespace attitude;
 TEST(EulerInstantiation, InstantiateEuler)
 {
     // Ensures ability to create concrete class.
-    euler_<int> theta;
+    euler<int> theta;
 }
 
 TEST(EulerInstantiation, DefaultIs0Rotation)
 {
     // Zero method returns instatiates and returns identity.
-    euler_<int> theta;
+    euler<int> theta;
     ASSERT_TRUE(theta[0] == 0 && theta[1] == 0 && theta[2] == 0);
 }
 
 TEST(EulerDebugging, STDOUTDisplay)
 {
     // Displays rotation matrix to console without error.
-    euler_<int> theta;
+    euler<int> theta;
     display(theta);
 }
 
 TEST(EulerMath, ConversionFromDCM)
 {
-    dcm_<double> R = R1(random_angle<double>()) + 
-                     R2(random_angle<double>()) +
-                     R3(random_angle<double>());
-    euler_<double> theta(R, randomise_order());
-    ASSERT_TRUE(theta == R);
+  matrix<double, 3, 3> R = dcm::R1(random_angle<double>()) * 
+                           dcm::R2(random_angle<double>()) *
+                           dcm::R3(random_angle<double>());
+
+  euler<double> theta(R, randomise_order());
+  ASSERT_TRUE(theta == R);
 }
 
 TEST(EulerMath, ComparisonWithDCM)
 {
-    // Adding rotations.
-    dcm_<double> R = R1(random_angle<double>());
-    euler_<double> theta(R, randomise_order());
-    ASSERT_TRUE(theta == R);
+  // Adding rotations.
+  matrix<double, 3, 3> R = dcm::R1(random_angle<double>());
+  euler<double> theta(R, randomise_order());
+  ASSERT_TRUE(theta == R);
 }
 
 TEST(EulerMath, AddRotations)
@@ -48,23 +49,24 @@ TEST(EulerMath, AddRotations)
     double beta  = random_angle<double>();
     
     // Adding rotations.
-    euler_<double> T1(R2(alpha), randomise_order());
-    euler_<double> T2(R2(beta),  randomise_order());
-    euler_<double> T3 = T1 + T2;
-    ASSERT_TRUE(T3 == R2(alpha + beta));
+    euler<double> T1(dcm::R2(alpha), randomise_order());
+    euler<double> T2(dcm::R2(beta),  randomise_order());
+    euler<double> T3 = T1 + T2;
+
+    ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(T3.matrix(), dcm::R2(alpha + beta));
 }
 
 TEST(EulerMath, SubtractRotations)
 {
     double alpha = random_angle<double>();
-    double beta = random_angle<double>();
+    double beta  = random_angle<double>();
 
     // Subtracting rotations.
-    dcm_<double> T1(R3(alpha));
-    dcm_<double> T2(R3(beta));
+    euler<double> T1(dcm::R3(alpha), randomise_order());
+    euler<double> T2(dcm::R3(beta), randomise_order());
 
-    dcm_<double> T3 = T1 - T2;
-    ASSERT_TRUE(T3 == R3(alpha - beta));
+    euler<double> T3 = T1 - T2;
+    ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(T3.matrix(), dcm::R3(alpha - beta));
 }
 
 TEST(EulerUtility, Reverse)
@@ -72,8 +74,14 @@ TEST(EulerUtility, Reverse)
     double alpha = random_angle<double>();
 
     // Reversing DCM should be the same creating one in the negative direction.
-    euler_<double> T1_pos(R1(alpha), randomise_order());
-    euler_<double> T2_neg(R1(-1 * alpha), randomise_order());
+    euler<double> T1_pos(dcm::R1(alpha), randomise_order());
+    euler<double> T2_neg(dcm::R1(-1 * alpha), randomise_order());
     ASSERT_TRUE(T2_neg == T1_pos.reverse());
 }
+
+//TEST(EulerMath, DifferentialKinematicRelation) {
+//    // 
+//    euler<double> T(dcm::ZERO<double>(), 123);
+//    display(T.dke());
+//}
 
