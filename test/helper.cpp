@@ -2,7 +2,7 @@
 #include <iostream>
 #include <ctime>
 
-#include "include/helpers.h"
+#include "include/helper.h"
 
 int random_not(int i)
 {
