@@ -13,7 +13,7 @@ TEST(QuaternionInstantiation, InstantiateQuaternion)
 
 TEST(QuaternionInstantiation, DefaultIs0Rotation)
 {
-    // Zero method returns instatiates and returns identity.
+    // Zero method and returns identity.
   quaternion<double> q(1, 0, 0, 0);
   ASSERT_TRUE(q == dcm::ZERO<int>());
 }
@@ -22,7 +22,7 @@ TEST(QuaternionDebugging, STDOUTDisplay)
 {
     // Displays rotation matrix to console without error.
     quaternion<int> q;
-    display(q);
+    // display(q);
 }
 
 TEST(QuaternionMath, ConversionFromDCM)

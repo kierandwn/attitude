@@ -117,12 +117,21 @@ class crp : public virtual description_set<Tp, 3> {
   // dcm_from_parameters_ (function)
   // Computes the directional cosine matrix from classical rodriguez components.
   void dcm_from_parameters_() override {
-    Tp norm2 = items_[0] ** 2 + itemms_[1] ** 2 + items_[2] ** 2;
+    Tp norm2 = pow(get_(0), 2) + pow(get_(1), 2) + pow(get_(2), 2);
 
-    matrix_ = matrix<Tp, 3, 3>{
-      1 + pow(get_(0), 2) - pow(get_(1), 2) - pow(get_(2), 2), 2. * (get_(0) * get_(1) + get_(2)), 2. * (get_(0) * get_(2) - get_(1)),
-      2. * (get_(0) * get_(1) - get_(2)), 1 - pow(get_(0), 2) + pow(get_(1), 2) - pow(get_(2), 2), 2. * (get_(1) * get_(2) + get_(0)),
-      2. * (get_(0) * get_(2) + get_(1)), 2. * (get_(1) * get_(2) - get_(0)), 1 - pow(get_(0), 2) - pow(get_(1), 2) + pow(get_(2), 2)
+    matrix_ = ::matrix<Tp, 3, 3>{
+      // Row 1
+      1 + pow(get_(0), 2) - pow(get_(1), 2) - pow(get_(2), 2),
+      2. * (get_(0) * get_(1) + get_(2)), 
+      2. * (get_(0) * get_(2) - get_(1)),
+      // Row 2
+      2. * (get_(0) * get_(1) - get_(2)), 
+      1 - pow(get_(0), 2) + pow(get_(1), 2) - pow(get_(2), 2),
+      2. * (get_(1) * get_(2) + get_(0)),
+      // Row 3
+      2. * (get_(0) * get_(2) + get_(1)), 
+      2. * (get_(1) * get_(2) - get_(0)), 
+      1 - pow(get_(0), 2) - pow(get_(1), 2) + pow(get_(2), 2)
     } * (1. / (1. + norm2));
     update_dcm_ = false; // dcm & parameters are now consistent
   }

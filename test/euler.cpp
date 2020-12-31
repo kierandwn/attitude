@@ -22,7 +22,7 @@ TEST(EulerDebugging, STDOUTDisplay)
 {
     // Displays rotation matrix to console without error.
     euler<int> theta;
-    display(theta);
+    // display(theta);
 }
 
 TEST(EulerMath, ConversionFromDCM)

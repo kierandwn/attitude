@@ -438,8 +438,8 @@ matrix<Tp, n - 1, n - 1> remove_rowi_colj(size_t i, size_t j,
 template <typename Tp, size_t n>
 Tp trace(matrix<Tp, n, n> square) {
   Tp trace = 0.;
-  for (i = 0; i < n; ++i) tr += square[i][i];
-  return tr;
+  for (int i = 0; i < n; ++i) trace += square[i][i];
+  return trace;
 }
 
 // determinant (function)

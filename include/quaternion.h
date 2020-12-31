@@ -108,6 +108,7 @@ class quaternion : public virtual description_set<Tp, 4> {
 
     // -------------------- Comparison. --------------------
     bool operator==(quaternion<Tp> q) { return matrix() == q.matrix(); }
+    bool operator==(::matrix<Tp, 3, 3> rhs) { return matrix() == rhs; }
 
  private:
   // -------------------- Description set virtual overrides. --------------------

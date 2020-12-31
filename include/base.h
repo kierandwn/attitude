@@ -121,7 +121,7 @@ class description_set {
   // -------------------- Comparison. --------------------
   template<size_t n2_items>
   bool operator== (description_set<Tp, n2_items> set) { return matrix() == set.matrix(); }
-  bool operator== (::matrix<Tp, 3, 3> rhs) { return matrix() == rhs; }
+  // bool operator== (::matrix<Tp, 3, 3> & rhs) { return matrix() == rhs; } // TODO: no effect?
 
   // -------------------- Indexing. --------------------
   Tp & operator[] (int i) { update_dcm_ = true; return items_[i]; }

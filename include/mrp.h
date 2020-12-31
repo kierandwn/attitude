@@ -91,8 +91,8 @@ class mrp : public virtual description_set<Tp, 3> {
   }
 
   mrp<Tp> operator- (mrp<Tp> q) {
-    Tp lhs_norm2 = get_(0) * *2 + get_(1) * *2 + get_(2) * *2;
-    Tp rhs_norm2 = q[0] * *2 + q[1] * *2 + q[2] * *2;
+    Tp lhs_norm2 = pow(get_(0), 2) + pow(get_(1), 2) + pow(get_(2), 2);
+    Tp rhs_norm2 = pow(q[0], 2) + pow(q[1], 2) + pow(q[2], 2);
 
     vector<Tp, 3> rhs_vec{rhs[0], rhs[1], rhs[2]};
 
@@ -104,8 +104,8 @@ class mrp : public virtual description_set<Tp, 3> {
   }
 
   mrp<Tp> * operator+= (mrp<Tp> q) {
-    Tp lhs_norm2 = get_(0) * *2 + get_(1) * *2 + get_(2) * *2;
-    Tp rhs_norm2 = q[0] * *2 + q[1] * *2 + q[2] * *2;
+    Tp lhs_norm2 = pow(get_(0), 2) + pow(get_(1), 2) + pow(get_(2), 2);
+    Tp rhs_norm2 = pow(q[0], 2) + pow(q[1], 2) + pow(q[2], 2);
 
     vector<Tp, 3> rhs_vec{rhs[0], rhs[1], rhs[2]};
 
@@ -118,8 +118,8 @@ class mrp : public virtual description_set<Tp, 3> {
   }
 
   mrp<Tp> * operator-= (mrp<Tp> q) {
-    Tp lhs_norm2 = get_(0) * *2 + get_(1) * *2 + get_(2) * *2;
-    Tp rhs_norm2 = q[0] * *2 + q[1] * *2 + q[2] * *2;
+    Tp lhs_norm2 = pow(get_(0), 2) + pow(get_(1), 2) + pow(get_(2), 2);
+    Tp rhs_norm2 = pow(q[0], 2) + pow(q[1], 2) + pow(q[2], 2);
 
     vector<Tp, 3> rhs_vec{rhs[0], rhs[1], rhs[2]};
 
@@ -144,11 +144,13 @@ class mrp : public virtual description_set<Tp, 3> {
     Tp quaternion[4];
     shepherds_rule(matrix_, quaternion);
 
-    set_([
+    Tp sigma[3] {
         quaternion[1] / quaternion[0],
         quaternion[2] / quaternion[0],
         quaternion[3] / quaternion[0]
-    ]);
+    };
+
+    set_(sigma);
     update_dcm_ = false; // dcm & parameters are now consistent
   }
 
@@ -157,7 +159,7 @@ class mrp : public virtual description_set<Tp, 3> {
   void dcm_from_parameters_() override {
     Tp norm2 = pow(get_(0), 2) + pow(get_(1), 2) + pow(get_(2), 2);
 
-    matrix_ = EYE<Tp, 3>() + (8 * tilde(items_) * tilde(items_) - 4 * (1 - norm2) * tilde(items_)) /
+    matrix_ = EYE<Tp, 3>() + ((tilde(items_) * tilde(items_) * 8) - (tilde(items_) * (4 * (1 - norm2)))) /
         pow(1 + norm2, 2);
 
     update_dcm_ = false; // dcm & parameters are now consistent
