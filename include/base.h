@@ -54,7 +54,9 @@ class description_set {
 
   description_set(std::initializer_list<Tp> il) {
     if (il.size() == n_items) {
-      std::copy(il.begin(), il.end(), items_);
+      Tp arr[n_items];
+      std::copy(il.begin(), il.end(), arr); // can't directly copy in vector class, TODO
+      items_ = vector<Tp, n_items>(arr);
 
     } else {
       throw("List initialiser length does not match matrix dimensions.");
@@ -88,7 +90,7 @@ class description_set {
   // Given angular velocity, propagate current representation over timestep dt.
   void propagate(Tp dt, vector<Tp, 3> omega) {
     vector<Tp, n_items> p_rate = dke() * omega;
-    for (int i = 0; i < n_items; ++i) { items_[i] += dt * dp[i]; }
+    for (int i = 0; i < n_items; ++i) { items_[i] = get_(i) + dt * dp[i]; }
   }
 
   // -------------------- DCM-based Addition/Subtraction. --------------------

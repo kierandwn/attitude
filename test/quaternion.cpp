@@ -7,13 +7,13 @@ using namespace attitude;
 
 TEST(QuaternionInstantiation, InstantiateQuaternion)
 {
-    // Ensures ability to create concrete class.
-     quaternion<double> q;
+  // Ensures ability to create concrete class.
+  quaternion<double> q;
 }
 
 TEST(QuaternionInstantiation, DefaultIs0Rotation)
 {
-    // Zero method and returns identity.
+  // Zero method and returns identity.
   quaternion<double> q(1, 0, 0, 0);
   ASSERT_TRUE(q == dcm::ZERO<int>());
 }

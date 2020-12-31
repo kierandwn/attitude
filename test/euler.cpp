@@ -79,9 +79,10 @@ TEST(EulerUtility, Reverse)
     ASSERT_TRUE(T2_neg == T1_pos.reverse());
 }
 
-//TEST(EulerMath, DifferentialKinematicRelation) {
-//    // 
-//    euler<double> T(dcm::ZERO<double>(), 123);
-//    display(T.dke());
-//}
+TEST(EulerMath, DifferentialKinematicRelation) {
+    // Zero rotation results in 1:1 mapping between ang. vel and euler rates
+    euler<double> T(dcm::ZERO<double>(), 123);
+    // display(T.dke());
+    ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(T.dke(), dcm::ZERO<double>());
+}
 
