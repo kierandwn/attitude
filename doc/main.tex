@@ -1,0 +1,270 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% writeLaTeX Example: A quick guide to LaTeX
+%
+% Source: Dave Richeson (divisbyzero.com), Dickinson College
+% 
+% A one-size-fits-all LaTeX cheat sheet. Kept to two pages, so it 
+% can be printed (double-sided) on one piece of paper
+% 
+% Feel free to distribute this example, but please keep the referral
+% to divisbyzero.com
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% How to use writeLaTeX: 
+%
+% You edit the source code here on the left, and the preview on the
+% right shows you the result within a few seconds.
+%
+% Bookmark this page and share the URL with your co-authors. They can
+% edit at the same time!
+%
+% You can upload figures, bibliographies, custom classes and
+% styles using the files menu.
+%
+% If you're new to LaTeX, the wikibook is a great place to start:
+% http://en.wikibooks.org/wiki/LaTeX
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[10pt,landscape]{article}
+\usepackage{amssymb,amsmath,amsthm,amsfonts}
+\usepackage{multicol,multirow}
+\usepackage{calc}
+\usepackage{ifthen}
+\usepackage[landscape]{geometry}
+\usepackage[colorlinks=true,citecolor=blue,linkcolor=blue]{hyperref}
+
+
+\ifthenelse{\lengthtest { \paperwidth = 11in}}
+    { \geometry{top=.5in,left=.5in,right=.5in,bottom=.5in} }
+	{\ifthenelse{ \lengthtest{ \paperwidth = 297mm}}
+		{\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+		{\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+	}
+\pagestyle{empty}
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%x
+                                {\normalfont\large\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}%
+                                {-1explus -.5ex minus -.2ex}%
+                                {0.5ex plus .2ex}%
+                                {\normalfont\normalsize\bfseries}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {1ex plus .2ex}%
+                                {\normalfont\small\bfseries}}
+\makeatother
+\setcounter{secnumdepth}{0}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt plus 0.5ex}
+% -----------------------------------------------------------------------
+
+\title{Attitude Description Sets: Cheatsheet}
+
+\begin{document}
+	
+\begin{center}
+	\Large{\textbf{Attitude Description Sets: A Cheatsheet}} \\
+\end{center}
+
+\begin{multicols}{3}
+	\setlength{\premulticols}{1pt}
+	\setlength{\postmulticols}{1pt}
+	\setlength{\multicolsep}{1pt}
+	\setlength{\columnsep}{2pt}
+	\raggedright
+	\footnotesize
+
+\section{The Attitude Description Problem}
+
+
+\section{Parameter Sets}
+
+\subsection{Directional Cosine Matrix}
+% Definition
+
+\subsubsection{Addition/Subtraction}
+
+\subsubsection{Differential Kinematic Relation}
+
+\subsection{Principle Rotation Vector}
+
+\subsection{Euler Angles}
+
+\subsection{Quaternions/Euler Parameters}
+
+\subsubsection{Addition/Subtraction}
+
+
+Addition:
+%\begin{center}
+$ \left[ FN(\beta) \right] = \left[ FB(\beta'') \right] \left[ BN(\beta') \right] $
+%\end{center}
+
+$
+	\left( \begin{array}{c}
+		\beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_3
+	\end{array} \right)
+	=
+	\left[ \begin{array}{cccc}
+		\beta_0'' & -\beta_1'' & -\beta_2'' & -\beta_3'' \\
+		\beta_1'' &  \beta_0'' &  \beta_3'' & -\beta_2'' \\
+		\beta_2'' & -\beta_3'' &  \beta_0'' &  \beta_1'' \\
+		\beta_3'' &  \beta_2'' & -\beta_1'' &  \beta_0'' 
+	\end{array} \right]
+	\left( \begin{array}{c}
+		\beta_0' \\ \beta_1' \\ \beta_2' \\ \beta_3'
+	\end{array} \right) \\
+	=
+	\left[ \begin{array}{cccc}
+		\beta_0' & -\beta_1' & -\beta_2' & -\beta_3' \\
+		\beta_1' &  \beta_0' &  \beta_3' & -\beta_2' \\
+		\beta_2' & -\beta_3' &  \beta_0' &  \beta_1' \\
+		\beta_3' &  \beta_2' & -\beta_1' &  \beta_0' 
+	\end{array} \right]
+	\left( \begin{array}{c}
+		\beta_0'' \\ \beta_1'' \\ \beta_2'' \\ \beta_3''
+	\end{array} \right)
+$	
+
+
+Subtraction:
+%\begin{center}
+$ \left[ BN(\beta') \right] = \left[ FB(\beta'')^T \right] \left[ FN(\beta) \right] $
+%\end{center}
+
+$
+	\left( \begin{array}{c}
+		\beta_0' \\ \beta_1' \\ \beta_2' \\ \beta_3'
+	\end{array} \right)
+	=
+	\left[ \begin{array}{cccc}
+		 \beta_0'' &  \beta_1'' &  \beta_2'' &  \beta_3'' \\
+		-\beta_1'' &  \beta_0'' & -\beta_3'' &  \beta_2'' \\
+		-\beta_2'' &  \beta_3'' &  \beta_0'' & -\beta_1'' \\
+		-\beta_3'' & -\beta_2'' &  \beta_1'' &  \beta_0'' 
+	\end{array} \right]
+	\left( \begin{array}{c}
+		\beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_3
+	\end{array} \right) \\
+$	
+
+\subsubsection{Differential Kinematic Relation}
+
+$
+	\left( \begin{array}{c}
+		\dot{\beta_0} \\ \dot{\beta_1} \\ \dot{\beta_2} \\ \dot{\beta_3}
+	\end{array} \right)
+	=
+	\frac{1}{2}
+	\left[ \begin{array}{cccc}
+		\beta_0 & -\beta_1 & -\beta_2 & -\beta_3 \\
+		\beta_1 &  \beta_0 & -\beta_3 &  \beta_2 \\
+		\beta_2 &  \beta_3 &  \beta_0 & -\beta_1 \\
+		\beta_3 & -\beta_2 &  \beta_1 &  \beta_0 
+	\end{array} \right]
+	\left( \begin{array}{c}
+		0 \\ \omega_1 \\ \omega_2 \\ \omega_3
+	\end{array} \right)
+$
+
+\subsection{Gibbs Vector/Classical Rodriguez Parameters}
+
+\subsubsection{Definition}
+
+Euler Parameter relations: \\
+$ q_i = \frac{\beta_i}{\beta_0} $
+
+inversely,
+
+$ \beta_0 = \frac{1}{1 + \textbf{q}^T \textbf{q}}; 
+  \beta_i = \frac{q_i}{1 + \textbf{q}^T \textbf{q}} $
+
+Principle Rotation Vector relations: \\
+
+$ \textbf{\sigma} = tan \left( \frac{\Phi}{2} \right) \hat{\textbf{e}}; \\
+  \textbf{\sigma} \approx \left( \frac{\Phi}{2} \right) \hat{\textbf{e}} $
+  
+\begin{align*}
+	\left[ C \right] &= \frac{1}{1 + \textbf{q}^T \textbf{q}}
+	\left[ \begin{array}{ccc}
+		1 + q_1^2 - q_2^2 - q_3^2 & 2(q_1 q_2 + q_3) & 2(q_1 q_3 - q_2) \\
+		2(q_1 q_2 - q_3) & 1 - q_1^2 + q_2^2 - q_3^2 & 2(q_2 q_3 + q_1) \\
+		2(q_1 q_3 + q_2) & 2(q_2 q_3 - q_1) & 1 - q_1^2 - q_2^2 + q_3^2
+	\end{array} \right] \\
+	%
+	&= \frac{1}{1 + \textbf{q}^T \textbf{q}}
+	\left( \left( 1 - \textbf{q}^T \textbf{q} \right) \left[ I_{3x3} \right] + 2\textbf{q}\textbf{q}^T - 2 \left[ \tilde{\textbf{q}}\right] \right)
+\end{align*}
+
+
+\subsection{Modified Rodriguez Parameters}
+
+\subsubsection{Definition}
+
+Euler Parameter relations: \\
+$ \sigma_i = \frac{\beta_i}{1 + \beta_0} $
+
+inversely,
+
+$ \beta_0 = \frac{1 - \sigma^2}{1 + \textbf{\sigma}^T \textbf{\sigma}}; 
+  \beta_i = \frac{2 \sigma_i}{1 + \textbf{\sigma}^T \textbf{\sigma}} $
+
+Principle Rotation Vector relations: \\
+
+$ \textbf{\sigma} = tan \left( \frac{\Phi}{4} \right) \hat{\textbf{e}}; \\
+  \textbf{\sigma} \approx \left( \frac{\Phi}{4} \right) \hat{\textbf{e}}
+$
+
+Classical Rodriguez Parameter relations: \\
+
+$ \textbf{q} = \frac{2 \textbf{\sigma}}{1 - \sigma^2};
+  \textbf{\sigma} = \frac{\textbf{q}}{1 + \sqrt{1 + q^2}} $
+
+\subsubsection{Addition/Subtraction}
+
+Addition: \\
+%\begin{center}
+$ \left[ FN(\beta) \right] = \left[ FB(\beta'') \right] \left[ BN(\beta') \right] $ \\
+%\end{center}
+
+$
+\textbf{\sigma} = \frac{(1 - |\sigma'|^2)\sigma'' + (1 - |\sigma''|^2)\sigma' - 2\sigma'' \times \sigma'}{1 + |\sigma'|^2|\sigma''|^2 - 2\sigma'\cdot \sigma''}
+$
+
+Subtraction: \\
+%\begin{center}
+$ \left[ BN(\beta') \right] = \left[ FB(\beta'')^T \right] \left[ FN(\beta) \right] $ \\
+%\end{center}
+
+$
+\textbf{\sigma}'' = \frac{(1 - |\sigma'|^2)\sigma - (1 - |\sigma|^2)\sigma' + 2\sigma \times \sigma'}{1 + |\sigma'|^2|\sigma|^2 + 2\sigma'\cdot \sigma}
+$
+
+\subsubsection{Differential Kinematic Relation}
+
+$
+\dot{\textbf{\sigma}} =
+\frac{1}{4}
+\left[ \begin{array}{ccc}
+	1 - \sigma^2 + 2\sigma_1^2 & 2(\sigma_1 \sigma_2 - \sigma_3) & 2(\sigma_1 \sigma_3 + \sigma_2) \\
+	2(\sigma_1 \sigma_2 + \sigma_3) &  1 - \sigma^2 + 2\sigma_2^2 & 2(\sigma_2 \sigma_3 - \sigma_1) \\
+	2(\sigma_1 \sigma_3 - \sigma_2) &  2(\sigma_2 \sigma_3 + \sigma_1) &  1 - \sigma^2 + 2\sigma_3^2 
+\end{array} \right]
+\left( \begin{array}{c}
+	\omega_1 \\ \omega_2 \\ \omega_3
+\end{array} \right)
+$
+%$
+%\dot{\textbf{\sigma}} =
+%\frac{1}{4} \left[ \left( 1 - \sigma^2 \right) \left[ I_{3x3} \right] + 2 \left[ \tilde{\sigma} \right] + 2\textbf{\sigma \sigma^T} \right] \textbf\{omega}
+%$
+
+% \subsection{Stereographic Projection}
+
+\section{Resources}
+
+\end{multicols}
+\end{document}
