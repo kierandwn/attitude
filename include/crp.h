@@ -47,9 +47,9 @@ class crp : public virtual description_set<Tp, 3> {
  public:
   crp() {}
 
-  crp(Tp s1, Tp s2, Tp s3) : description_set{s1, s2, s3} { dcm_from_parameters_(); }
-
+  crp(Tp q1, Tp q2, Tp q3) : description_set{q1, q2, q3} { dcm_from_parameters_(); }
   crp(::matrix<Tp, 3, 3> R) : description_set(R) { parameters_from_dcm_(); }
+  crp(::vector<Tp, 3> q) : description_set{q[0], q[1], q[2]} { dcm_from_parameters_(); }
 
   template <typename Tp2, size_t n2_items>
   crp(description_set<Tp2, n2_items>* set) : description_set(set) {}
@@ -67,7 +67,7 @@ class crp : public virtual description_set<Tp, 3> {
 
   // reverse (function)
   // Returns the reverse rotation represented as a CRP.
-  crp<Tp> reverse() { return crp<Tp>{items_ * -1}; }
+  crp<Tp> reverse() { return crp<Tp>(items_ * -1); }
 
 
   // -------------------- Classical Rodriguez Addition/Subtraction. --------------------
@@ -78,20 +78,20 @@ class crp : public virtual description_set<Tp, 3> {
     // TODO: also add a PRV object: inheriting from vector, description_set
   }
 
-  crp<Tp> operator-(crp<Tp> q) { // TODO
-
-    return crp<Tp>{result[0], result[1], result[2]};
+  crp<Tp> operator-(crp<Tp> rhs) { // TODO
+    vector<Tp, 3> rhs_vec{rhs[0], rhs[1], rhs[2]};
+    return (items_ - rhs_vec + cross(items_, rhs_vec)) / (1 + items_.inner(rhs_vec));
   }
 
-  crp<Tp> * operator+=(crp<Tp> q) {
+  crp<Tp> * operator+=(crp<Tp> rjs) {
     vector<Tp, 3> rhs_vec{rhs[0], rhs[1], rhs[2]};
     items_ = (items_ + rhs_vec - cross(items_, rhs_vec)) / (1 - items_.inner(rhs_vec));
     return this;
   }
 
-  crp<Tp> * operator-=(crp<Tp> q) { // TODO
-
-    set_([ result[0], result[1], result[2] ]);
+  crp<Tp> * operator-=(crp<Tp> rhs) { // TODO
+    vector<Tp, 3> rhs_vec{rhs[0], rhs[1], rhs[2]};
+    items_ = (items_ - rhs_vec + cross(items_, rhs_vec)) / (1 + items_.inner(rhs_vec));
     return this;
   }
 
