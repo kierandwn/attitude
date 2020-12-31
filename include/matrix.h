@@ -30,9 +30,14 @@
 
 namespace attitude {
 
-// ==================== matrix ====================
+
+// matrix (class)
+// MxN matrix implementation. Matrix multiplication & 'division' operations 
+// defined. Templated so that can be defined for an element of any (primitive)
+// type, precision can be application specific.
 template <typename Tp, size_t rows, size_t cols>
 class matrix {
+  // ==================== matrix ====================
  private:
   Tp get_(int i) {
     if (i < size_) {
@@ -486,10 +491,14 @@ matrix<Tp, n, n> inverse(matrix<Tp, n, n> square) {
   return cofactors(square).transpose() * (Tp(1.) / determinant(square));
 }
 
-// ==================== vector ====================
 
+
+// vector (class)
+// Nx1 matrix representation of vector. Vector operations encoded.
+// Derived from matrix class.
 template <typename Tp, size_t len>
 class vector : virtual public matrix<Tp, len, 1> {
+  // ==================== vector ====================
  private:
   Tp get_(int i) {
     if (i < size_) {

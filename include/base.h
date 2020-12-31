@@ -30,6 +30,9 @@
 namespace attitude {
 
 
+// description_set (class, abstract)
+// Desribes commonality between all attitude parameterisations, and indicates 
+// specific functionalities to implemented in each subclass.
 template<typename Tp, size_t n_items>
 class description_set {
  protected:
@@ -48,7 +51,6 @@ class description_set {
   description_set() {}
   description_set(matrix<Tp, 3, 3> M) 
       : matrix_(M) {}
-  //{ parameters_from_dcm_(); }
 
   description_set(std::initializer_list<Tp> il) {
     if (il.size() == n_items) {
@@ -62,18 +64,28 @@ class description_set {
   template<typename Tp2, size_t n2_items>
   description_set(description_set<Tp2, n2_items> M) 
       : matrix_(M.matrix()) {}
-  //{ parameters_from_dcm_(); }
 
  public:
+  // dke (function)
+  // Differential Kinematic Equation.
+  // Pure virtual function. Indicate concrete descriptions sets must specify
+  // a matrix for mapping angular velocity onto their parameter rates.
   virtual matrix<Tp, n_items, n_items> dke() = 0;
 
+  // matrix (function)
+  // Returns the directional cosine matrix equivalent of the represented rotation.
   matrix<Tp, 3, 3> matrix() {
     if (update_dcm_) { dcm_from_parameters_(); }
     return matrix_;
   }
 
+  // reverse (function)
+  // Returns reverse rotation of current. auto keyword used so return DCM can be 
+  // to any attitude representation.
   auto reverse() { return matrix().transpose(); }
 
+  // propagate (function)
+  // Given angular velocity, propagate current representation over timestep dt.
   void propagate(Tp dt, vector<Tp, 3> omega) {
     vector<Tp, n_items> p_rate = dke() * omega;
     for (int i = 0; i < n_items; ++i) { items_[i] += dt * dp[i]; }
@@ -114,6 +126,16 @@ class description_set {
   // -------------------- Indexing. --------------------
   Tp & operator[] (int i) { update_dcm_ = true; return items_[i]; }
 };
+
+
+// display (function)
+// STDOUT display for description sets. Items are display inline enclosed in curly braces.
+template <typename Tp, size_t n_items>
+void display(attitude::description_set<Tp, n_items> p) {
+  std::cout << "{ " << p[0];
+  for (int i < 1; i < n_items; ++i) { std::cout << ", " << p[i]; }
+  std::cout << " }" << std::endl;
+}
   
 
 } // namespace attitude

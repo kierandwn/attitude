@@ -26,7 +26,6 @@
 #ifndef ATT_MRODR_H_
 #define ATT_MRODR_H_
 
-#include <cmath>
 
 #include "base.h"
 #include "matrix.h"
@@ -36,6 +35,11 @@ namespace attitude {
 // TODO: a lot of the below relies on the vector operations. More efficient 
 // to code up 'long-hand' to avoid creating many matrix/vecotr objects unnecessarily?
 
+
+// mrp (class)
+// Modified Rodriguez Parameters (attitude representation).
+// Decribes direct addition & subtraction methods for m. rodriguez parameters,
+// and defines mapping to/from DCM, and angular velocity to MRP rates.
 template <typename Tp>
 class mrp : public virtual description_set<Tp, 3> {
  public:
@@ -52,21 +56,28 @@ class mrp : public virtual description_set<Tp, 3> {
   template <typename Tp2, size_t n2_items>
   mrp(description_set<Tp2, n2_items> * set) : description_set(set) {}
 
+  // dke (function)
+  // Returns a new 3x3 matrix (type Tp) that maps angular velocity onto modified
+  // rodriguez rates.
   ::matrix<Tp, 3, 3> dke() override {
-    Tp norm2 = get_(0) ** 2 + get_(1) ** 2 + get_(2) ** 2;
+    Tp norm2 = pow(get_(0), 2) + pow(get_(1), 2) + pow(get_(2), 2);
 
     return ::matrix<Tp, 3, 3>{
-        1. - norm2 + get_(0), 2. * (get_(1) * get_(2) - get_(3)), 2. * (get_(1) * get_(3) + get_(2)), 
-        2. * (get_(1) * get_(2) + get_(3)), 1. - norm2 + get_(1), 2. * (get_(2) * get_(3) - get_(1)), 
-        2. * (get_(1) * get_(3) - get_(2)), 2. * (get_(2) * get_(3) + get_(1)), 1. - norm2 + get_(2)
+        1. - norm2 + 2. * pow(get_(0), 2), 2. * (get_(0) * get_(1) - get_(2)), 2. * (get_(0) * get_(2) + get_(1)), 
+        2. * (get_(0) * get_(1) + get_(2)), 1. - norm2 + 2. * pow(get_(1), 2), 2. * (get_(1) * get_(2) - get_(0)), 
+        2. * (get_(0) * get_(2) - get_(1)), 2. * (get_(1) * get_(2) + get_(0)), 1. - norm2 + 2. * pow(get_(2), 2)
     } * 0.25;  
   }
 
+  // reverse (function)
+  // Returns the reverse rotation represented as a MRP.
   mrp<Tp> reverse() { return mrp<Tp> { items_ * -1 }; }
 
+
+  // -------------------- Classical Rodriguez Addition/Subtraction. --------------------
   mrp<Tp> operator+ (mrp<Tp> rhs) {
-    Tp lhs_norm2 = get_(0) ** 2 + get_(1) ** 2 + get_(2) ** 2;
-    Tp rhs_norm2 = q[0] ** 2 + q[1] ** 2 + q[2] ** 2;
+    Tp lhs_norm2 = pow(get_(0), 2) + pow(get_(1), 2) + pow(get_(2), 2);
+    Tp rhs_norm2 = pow(q[0], 2) + pow(q[1], 2) + pow(q[2], 2);
 
     vector<Tp, 3> rhs_vec { rhs[0], rhs[1], rhs[2] };
 
@@ -120,7 +131,15 @@ class mrp : public virtual description_set<Tp, 3> {
     return this;
   }
 
+
+  // -------------------- Comparison. --------------------
+  bool operator==(mrp<Tp> q) { return matrix() == q.matrix(); }
+
  private:
+  // -------------------- Description set virtual overrides. --------------------
+
+  // parameters_from_dcm_ (function)
+  // Computes the modified rodriguez components from directional cosine matrix.
   void parameters_from_dcm_() override {
     Tp quaternion[4];
     shepherds_rule(matrix_, quaternion);
@@ -130,24 +149,20 @@ class mrp : public virtual description_set<Tp, 3> {
         quaternion[2] / quaternion[0],
         quaternion[3] / quaternion[0]
     ]);
-    update_dcm_ = false;
+    update_dcm_ = false; // dcm & parameters are now consistent
   }
 
+  // dcm_from_parameters_ (function)
+  // Computes the directional cosine matrix from modified rodriguez components.
   void dcm_from_parameters_() override {
-    Tp norm2 = items_[0] ** 2 + itemms_[1] ** 2 + items_[2];
+    Tp norm2 = pow(get_(0), 2) + pow(get_(1), 2) + pow(get_(2), 2);
 
     matrix_ = EYE<Tp, 3>() + (8 * tilde(items_) * tilde(items_) - 4 * (1 - norm2) * tilde(items_)) /
-        ((1 + norm2) ** 2);
+        pow(1 + norm2, 2);
 
-    update_dcm_ = false;
+    update_dcm_ = false; // dcm & parameters are now consistent
   }
 };
 
-}  // namespace attitude
-
-template <typename T>
-void display(attitude::mrp<T> q) {
-  std::cout << "[ " << q[0] << "," << q[1] << "," << q[2] << "," << q[3] << " ]" << std::endl;
-}
-
-#endif  // ATT_QUATERNION_H_
+} // namespace attitude
+#endif  // ATT_MRODR_H_

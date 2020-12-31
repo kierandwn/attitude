@@ -34,6 +34,10 @@
 namespace attitude {
 
 
+// euler (class)
+// Euler Angles (attitude representation).
+// Decribes direct addition & subtraction methods for euler angles, of any
+// order, and defines mapping to/from DCM, and angular velocity to MRP rates.
 template <typename Tp>
 class euler : public virtual description_set<Tp, 3> 
 {
@@ -43,7 +47,7 @@ private:
 public:
   euler(uint16_t ijk=123) : ijk_(ijk) {}
 
-  euler(Tp t1, Tp t2, Tp t3, uint16_t ijk=123) 
+  euler(Tp t1, Tp t2, Tp t3, uint16_t ijk=123)
       : description_set{ t1, t2, t3 },
         ijk_(ijk) 
   { dcm_from_parameters_(); }
@@ -57,32 +61,9 @@ public:
         ijk_(ijk)
   { parameters_from_dcm_(); }
 
-  // -------------------- Euler Addition/Subtraction. --------------------
-  euler<Tp> operator+ (euler<Tp> theta) {
-    return euler<Tp>(matrix() * theta.matrix(), order());
-  }
-
-  euler<Tp> operator- (euler<Tp> theta) {
-    return euler<Tp>(matrix() / theta.matrix(), order());
-  }
-
-  euler<Tp> * operator+= (euler<Tp> theta) {
-    matrix_ *= theta.matrix();
-    parameters_from_dcm_();
-    return this;
-  }
-
-  euler<Tp> * operator-= (euler<Tp> theta) {
-    matrix_ /= theta.matrix();
-    parameters_from_dcm_();
-    return this;
-  }
-
-  // -------------------- Comparison. --------------------
-  bool operator== (euler<Tp> theta) { return matrix() == theta.matrix(); }
- 
-  uint16_t order () { return ijk_; }
-
+  // dke (function)
+  // Returns a new 3x3 matrix (type Tp) that maps angular velocity
+  // onto euler rates.
   ::matrix<Tp, 3, 3> dke() override {
     switch (order()) {
       case 123:
@@ -106,7 +87,42 @@ public:
     }
   }
 
+  // order (function)
+  // Returns a eulr angle order (16bit uint).
+  uint16_t order() { return ijk_; }
+
+
+  // -------------------- Euler Addition/Subtraction. --------------------
+  // No direct optimisation - has to go through rotation matrices.
+
+  euler<Tp> operator+ (euler<Tp> theta) {
+    return euler<Tp>(matrix() * theta.matrix(), order());
+  }
+
+  euler<Tp> operator- (euler<Tp> theta) {
+    return euler<Tp>(matrix() / theta.matrix(), order());
+  }
+
+  euler<Tp> * operator+= (euler<Tp> theta) {
+    matrix_ *= theta.matrix();
+    parameters_from_dcm_();
+    return this;
+  }
+
+  euler<Tp> * operator-= (euler<Tp> theta) {
+    matrix_ /= theta.matrix();
+    parameters_from_dcm_();
+    return this;
+  }
+
+  // -------------------- Comparison. --------------------
+  bool operator== (euler<Tp> theta) { return matrix() == theta.matrix(); }
+
  private:
+  // -------------------- Description set virtual overrides. --------------------
+  
+  // parameters_from_dcm_ (function)
+  // Computes the euler angle parameters from directional cosine matrix.
   void parameters_from_dcm_ () override {
     switch (order()) {
       case 121: {
@@ -170,9 +186,11 @@ public:
         items_[2] = atan2(matrix_[0][2], matrix_[1][2]);
       } break;
     }
-    update_dcm_ = false;
+    update_dcm_ = false; // dcm & parameters are now consistent
   }
 
+  // dcm_from_parameters_ (function)
+  // Computes the directional cosine matrix from euler angle parameters.
   void dcm_from_parameters_ () override {
     uint8_t i = ijk_ / 100;
     uint8_t j = (ijk_ - (i * 100)) / 10;
@@ -181,19 +199,9 @@ public:
     matrix_  = dcm::AXIS(i, items_[0]);
     matrix_ *= dcm::AXIS(j, items_[1]);
     matrix_ *= dcm::AXIS(k, items_[2]);
-    update_dcm_ = false;
+    update_dcm_ = false; // dcm & parameters are now consistent
   }
 };
 
 } // namespace attitude
-
-template<typename Tp>
-void display(attitude::euler<Tp> theta)
-{
-  printf("euler<%d>{%d, %d, %d}\n", theta.order(), 
-                                        theta[0], 
-                                        theta[1],
-                                        theta[2]);
-}
-
 #endif // ATT_EULER_H_

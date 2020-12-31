@@ -26,6 +26,7 @@
 #ifndef ATT_QUATERNION_H_
 #define ATT_QUATERNION_H_
 
+
 #include "base.h"
 #include "matrix.h"
 #include "shepherds.h"
@@ -33,6 +34,10 @@
 namespace attitude {
 
 
+// quaternion (class)
+// Quaternion/ Euler Parameters (attitude representation).
+// Decribes direct addition & subtraction methods for quaternion,
+// defines mapping to/from DCM, and angular velocity to quaternion rates.
 template<typename Tp>
 class quaternion : public virtual description_set<Tp, 4> {
  public:
@@ -47,6 +52,9 @@ class quaternion : public virtual description_set<Tp, 4> {
   template <typename Tp2, size_t n2_items>
   quaternion(description_set<Tp2, n2_items> set) : description_set(set) {}
 
+  // dke (function)
+  // Returns a new 4x4 matrix (type Tp) that maps modified angular velocity
+  // vector onto euler rates. (mod. angular velocity vec [0, w1, w2, w3]^T).
   ::matrix<Tp, 4, 4> dke() override {
     return ::matrix<Tp, 4, 4>{
         get_(0), -1 * get_(1), -1 * get_(2), -1 * get_(3),
@@ -56,6 +64,7 @@ class quaternion : public virtual description_set<Tp, 4> {
     } * 0.5;
   }
 
+  // -------------------- Quaternion Addition/Subtraction. --------------------
   quaternion<Tp> operator+ (quaternion<Tp> q) {
     return quaternion<Tp> {
         q[0] * get_(0) + -1. * q[1] * get_(1) + -1. * q[2] * get_(2) + -1. * q[3] * get_(3),
@@ -97,16 +106,24 @@ class quaternion : public virtual description_set<Tp, 4> {
       return this;
     }
 
+    // -------------------- Comparison. --------------------
+    bool operator==(quaternion<Tp> q) { return matrix() == q.matrix(); }
+
  private:
+  // -------------------- Description set virtual overrides. --------------------
+
+  // parameters_from_dcm_ (function)
+  // Computes the quaternion components from directional cosine matrix (shepherd's method).
   void parameters_from_dcm_() override {
     Tp quaternion[4];
     shepherds_rule(matrix_, quaternion);
 
     set_(quaternion);
-
-    update_dcm_ = false;
+    update_dcm_ = false; // dcm & parameters are now consistent
   }
 
+  // dcm_from_parameters_ (function)
+  // Computes the directional cosine matrix from quaternion components.
   void dcm_from_parameters_() override {
     // Row 1
     matrix_[0][0] = pow(get_(0), 2) + pow(get_(1), 2) - pow(get_(2), 2) - pow(get_(3), 2.);
@@ -120,24 +137,10 @@ class quaternion : public virtual description_set<Tp, 4> {
     matrix_[2][0] = 2. * (get_(1) * get_(3) + get_(0) * get_(2));
     matrix_[2][1] = 2. * (get_(2) * get_(3) - get_(0) * get_(1));
     matrix_[2][2] = pow(get_(0), 2) - pow(get_(1), 2) - pow(get_(2), 2) + pow(get_(3), 2);
-    update_dcm_ = false;
+    update_dcm_ = false; // dcm & parameters are now consistent
   }
 };
 
 
 } // namespace attitude
-
-template<typename T>
-void display(attitude::quaternion<T> q)
-{
-    std::cout
-        << "[ "
-        << q[0] << ","
-        << q[1] << ","
-        << q[2] << ","
-        << q[3]
-        << " ]"
-        << std::endl;
-}
-
 #endif  // ATT_QUATERNION_H_

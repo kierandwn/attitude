@@ -26,6 +26,8 @@
 namespace attitude {
 namespace dcm {
 
+// ZERO (function)
+// Returns rotation matrix for a zero rotation (identity).
 template <typename Tp>
 matrix<Tp, 3, 3> ZERO() {
   return matrix<Tp, 3, 3>{1., 0., 0., 
@@ -33,6 +35,9 @@ matrix<Tp, 3, 3> ZERO() {
                           0., 0., 1.};
 }
 
+
+// R1 (function)
+// Returns rotation matrix for a theta radian rotation about the first axis.
 template <typename Tp>
 matrix<Tp, 3, 3> R1(Tp theta) {
   return matrix<Tp, 3, 3>{1.,          0.,         0.,
@@ -40,6 +45,9 @@ matrix<Tp, 3, 3> R1(Tp theta) {
                           0., -sin(theta), cos(theta)};
 }
 
+
+// R2 (function)
+// Returns rotation matrix for a theta radian rotation about the second axis.
 template <typename Tp>
 matrix<Tp, 3, 3> R2(Tp theta) {
   return matrix<Tp, 3, 3>{cos(theta), 0., -sin(theta), 
@@ -47,6 +55,9 @@ matrix<Tp, 3, 3> R2(Tp theta) {
                           sin(theta), 0.,  cos(theta)};
 }
 
+
+// R3 (function)
+// Returns rotation matrix for a theta radian rotation about the third axis.
 template <typename Tp>
 matrix<Tp, 3, 3> R3(Tp theta) {
   return matrix<Tp, 3, 3>{ cos(theta), sin(theta), 0., 
@@ -54,6 +65,9 @@ matrix<Tp, 3, 3> R3(Tp theta) {
                                    0.,         0., 1.};
 }
 
+
+// AXIS (function)
+// Returns rotation matrix for a theta radian rotation about the specified axis.
 template <typename Tp>
 matrix<Tp, 3, 3> AXIS(int axis, Tp theta) {
   switch (axis) {
@@ -70,5 +84,4 @@ matrix<Tp, 3, 3> AXIS(int axis, Tp theta) {
 
 } // namespace dcm
 } // namespace attitude
-
 #endif // ATT_DCM_H_
