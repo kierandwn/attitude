@@ -1,489 +1,636 @@
-#ifndef ATT_MATRIX_H
-#define ATT_MATRIX_H
-
-#include <cstdarg>
-
-namespace attitude
-{
-	namespace linalg
-	{
-		inline void remove_dim(int k, const int length, int* dims, int* reduced_dims)
-		{
-			int j = 0;
-
-			for (int i = 0; i < length; i++)
-				if (k != i) { reduced_dims[j] = dims[i]; j += 1; }
-		};
-
-		template<typename T>
-		class matrix
-		{
-		protected:
-			const int _shape[2];
-			const int _size;
-
-			const int _rows() { return _shape[0]; }
-			const int _cols() { return _shape[1]; }
-
-			T * _items; // enforce _size limit in memory?
-			bool _allocated = false;
-
-			T _get(int i, int j) { return _items[i * _rows() + j]; }
-			void _set(int i, int j, T val) { operator[](i)[j] = val; }
-			
-			void _set(T* arr) { for (int i = 0; i <  _size; i++) { _items[i] = arr[i]; } }
-
-			void _allocate() { if ( !_allocated ) { _items = new T[_size]; _allocated = true; } }
-			void _deallocate() { if ( _allocated ) { delete[] _items;  _allocated = false; } }
-
-		public:
-			//template<typename... elements>
-			//matrix(const int rows, const int cols, elements... items) : _shape{ rows, cols },
-			//															_size(rows* cols)
-			//{
-			//	const int n = sizeof...(items);
-			//	// TODO : Raise exception if rows * cols != n
-
-			//		//T* items = new T[shape[0] * shape[1]]{ T(0.) }
-			//	_items = { items... };
-			//	//elements = [ items... ];
-			//}
-
-			matrix(const int rows, const int cols, ...) : _shape{ rows, cols },
-														  _size(rows * cols)
-			{
-				_allocate();
-
-				va_list args;
-				va_start(args, cols);
-
-				for (int k = 0; k < _size; k++)
-					_items[k] = va_arg(args, T); // doesn't seem to correctly convert to type
-
-				va_end(args);
-			}
-
-			matrix(const int rows, const int cols, T val) : _shape{ rows, cols },
-															_size(rows * cols)
-			{
-				_allocate();
-
-				for (int i = 0; i < rows; i++)
-					for (int j = 0; j < cols; j++)
-						_items[i * rows + j] = val;
-			}
-
-			matrix(const int rows, const int cols, T* arr) : _shape{ rows, cols },
-															 _size(rows * cols) 
-			{
-				_allocate();
-
-				// TODO : Raise exception if rows * cols != len(arr)
-				for (int i = 0; i < rows; i++)
-					for (int j = 0; j < cols; j++)
-						_set(i, j, arr[i * rows + j]);
-			}
-
-			// Copy constructor
-			matrix(matrix<T>& M) : _shape{ M.shape()[0], M.shape()[1] },
-								   _size(M.size())
-			{
-				_allocate();
-
-				// TODO : Raise exception if rows * cols != len(arr)
-				for (int i = 0; i < _rows(); i++)
-					for (int j = 0; j < _cols(); j++)
-						_set(i, j, M[i][j]);
-			}
-
-			~matrix() { _deallocate(); }
-
-			int size() { return _size; }
-			const int * shape() { return _shape; }
-
-			matrix<T> transpose()
-			{
-				matrix<T> transposed(_cols(), _rows());
-
-				for (int i = 0; i < _rows(); i++)
-					for (int j = 0; j < _cols(); j++)
-						transposed[i][j] = _get(j, i);
-
-				return transposed;
-			}
-
-			// Elementwise operations.
-			matrix<T> operator+ (matrix<T> M)
-			{
-				matrix<T> result(_rows(), _cols());
-
-				for (int i = 0; i < _rows(); i++)
-					for (int j = 0; j < _cols(); j++)
-						result[i][j] = _get(i, j) + M[i][j];
-
-				return result;
-			}
-
-			matrix<T> operator- (matrix<T> M)
-			{
-				matrix<T> result(_rows(), _cols());
-
-				for (int i = 0; i < _rows(); i++)
-					for (int j = 0; j < _cols(); j++)
-						result[i][j] = _get(i, j) - M[i][j];
-
-				return result;
-			}
-
-			matrix<T> operator+ (T val)
-			{
-				matrix<T> result(_rows(), _cols());
-
-				for (int i = 0; i < _rows(); i++)
-					for (int j = 0; j < _cols(); j++)
-						result[i][j] = operator[](i)[j] + val;
-
-				return result;
-			}
-
-			matrix<T> operator- (T val)
-			{
-				matrix<T> result(_rows(), _cols());
-
-				for (int i = 0; i < _rows(); i++)
-					for (int j = 0; j < _cols(); j++)
-						result[i][j] = operator[](i)[j] - val;
-					
-				return result;
-			}
-
-			// Elementwise multiplication
-			matrix<T> operator* (T val)
-			{
-				matrix<T> result(_rows(), _cols());
-
-				for (int i = 0; i < _rows(); i++)
-					for (int j = 0; j < _cols(); j++)
-						result[i][j] = operator[](i)[j] * val;
-					
-				return result;
-			}
-
-			matrix<T> operator/ (T val)
-			{
-				matrix<T> result(_rows(), _cols());
-
-				for (int i = 0; i < _rows(); i++)
-					for (int j = 0; j < _cols(); j++)
-						result[i][j] = operator[](i)[j] / val;
-					
-				return result;
-			}
-
-			// Matrix multiplication
-			matrix<T> operator* (matrix<T> M)
-			{
-				// TODO: raise exception if inner dimensions don't match
-				const int shape[2]{ _rows(), M.shape()[1] };
-
-				matrix<T> result(shape[0], shape[1]);
-
-				for (int i = 0; i < shape[0]; i++) {
-					for (int j = 0; j < shape[1]; j++) {
-						result[i][j] = T(0.);
-						for (int k = 0; k < _cols(); k++)
-							result[i][j] += _get(i, k) * M[k][j];
-					}
-				}
-				return result;
-			}
-
-			matrix<T>* operator*= (matrix<T> M)
-			{
-				// TODO: raise exception if inner dimensions don't match
-				const int shape[2]{ _rows(), M.shape()[1] };
-
-				// create new items array while
-				T* items = new T[shape[0] * shape[1]]{ T(0.) };
-
-				for (int i = 0; i < shape[0]; i++) {
-					for (int j = 0; j < shape[1]; j++) {
-						for (int k = 0; k < _cols(); k++)
-							items[i * shape[0] + j] += _get(i, k) * M[k][j];
-					}
-				}
-				
-				_set(items);
-				delete items;
-				
-				return this;
-			}
-
-			// Comparison
-			bool operator==(matrix<T> M)
-			{
-				// TODO: raise exception if dimensions don't match (or simply return false?)
-				for (int i = 0; i < _rows(); i++)
-					for (int j = 0; j < _cols(); j++)
-						if (_get(i, j) != M[i][j]) { return false; }
-
-				return true;
-			}
-
-			bool operator==(T val)
-			{
-				for (int i = 0; i < _rows(); i++)
-					for (int j = 0; j < _cols(); j++)
-						if (std::abs(_get(i, j) - val) > 1e-05) { return false; }
-
-				return true;
-			}
-
-			// Indexing
-			T* operator[] (int i) { return &_items[i * _rows()]; }
-		};
-
-		 template<typename T>
-		 class square : virtual public matrix<T> {
-		 public:
-			 // template<typename... elements>
-			 square(const int n, ...) : matrix(n, n)
-			 {
-				 va_list args;
-				 va_start(args, n);
-
-				 for (int k = 0; k < _size; k++)
-					 _items[k] = va_arg(args, T);
-
-				 va_end(args);
-			 }
-
-			 square(const int n, T* arr) : matrix(n, n, arr) {}
-
-			 // convert base-class matrix into square
-			 square(matrix<T> M) : matrix( M.shape()[0], M.shape()[1] )
-			 {
-				 _allocate();
-
-				 // TODO : Raise exception if rows * cols != len(arr)
-				 for (int i = 0; i < _rows(); i++)
-					 for (int j = 0; j < _cols(); j++)
-						 _set(i, j, M[i][j]);
-			 }
-
-			 T trace() {
-				 T trace = 0;
-				 for (int k = 0; k < _rows(); k++)
-					 trace += this[k][k] ** 2;
-
-				 return T;
-			 }
-
-			 T determinant(int n, int* rows, int* cols)
-			 {
-				 if (n == 2) {
-					 T a = _get(rows[0], cols[0]);
-					 T b = _get(rows[0], cols[1]);
-					 T c = _get(rows[1], cols[0]);
-					 T d = _get(rows[1], cols[1]);
-					 return  a * d - b * c;
-				 }
-				 else
-				 {
-					 int* reduced_rows = new int[n - 1];
-					 remove_dim(0, n, rows, reduced_rows);
-
-					 T det = 0.;
-					 int scalar;
-
-					 for (int i = 0; i < n; i++)
-					 {
-						 int* reduced_cols = new int[n - 1];
-						 remove_dim(i, n, cols, reduced_cols);
-
-						 scalar = ((i * 3) % 2 == 0) ? 1 : -1;
-						 det += scalar * _get(0, i) * determinant(n - 1, reduced_rows, reduced_cols);
-						 delete reduced_cols;
-					 }
-					 delete reduced_rows;
-					 return det;
-				 }
-			 }
-
-			 T determinant()
-			 {
-				 int * rows = new int[_rows()];
-				 int * cols = new int[_cols()];
-
-				 for (int i = 0; i < _rows(); i++) { rows[i] = i; }
-				 for (int i = 0; i < _cols(); i++) { cols[i] = i; }
-
-				 T det = determinant(_rows(), rows, cols);
-				 delete rows, cols;
-				 return det;
-			 }
-
-			 square<T> cofactors()
-			 {
-				 if (_rows() > 2) {
-					 T* cof = new T[_size];
-					 int scalar;
-
-					 int * full_rows = new int[_rows()];
-					 int * full_cols = new int[_cols()];
-
-					 for (int i = 0; i < _rows(); i++) { full_rows[i] = i; }
-					 for (int i = 0; i < _cols(); i++) { full_cols[i] = i; }
-
-					 for (int i = 0; i < _rows(); i++) {
-						 int * reduced_rows = new int[_rows() - 1];
-						 remove_dim(i, 3, full_rows, reduced_rows);
-
-						 for (int j = 0; j < _cols(); j++) {
-							 int * reduced_cols = new int[_cols() - 1];
-							 remove_dim(j, 3, full_cols, reduced_cols);
-
-							 scalar = ((i * 3 + j) % 2 == 0) ? 1 : -1;
-							 cof[i * _rows() + j] = scalar * determinant(_rows() - 1, reduced_rows, reduced_cols);
-							 delete[] reduced_cols;
-						 }
-						 delete[] reduced_rows;
-					 }
-					 square<T> _cof(_rows(), cof);
-
-					 delete[] cof, full_rows, full_cols;
-					 return _cof;
-				 }
-				 else
-				 {
-					 // raise exception: not possible to obtain cofactor matrix of a 2x2
-				 }
-			 }
-
-			 square<T> inverse() { return cofactors().transpose() * (T(1.) / determinant()); }
-		 }; // square matrix
-
-		 template<typename T>
-		 class vector : virtual public matrix<T>
-		 {
-		 private:
-			 T _get(int i) { return _items[i]; }
-			 void _set(int i, T val) { operator[](i) = val; }
-
-		 public:
-			 vector(const int len, ...) : _shape{ 1, len },
-										  _size( len )
-			 {
-				 _allocate();
-
-				 va_list args;
-				 va_start(args, len);
-
-				 for (int i = 0; i < len; i++)
-					 _set(k, va_arg(args, T)); // doesn't seem to correctly convert to type
-
-				 va_end(args);
-			 }
-
-			 vector(const int len, T val) : _shape{ 1, len },
-											_size( len )
-			 {
-				 _allocate();
-
-				 for (int i = 0; i < len; i++)
-					 _set(i, val);
-			 }
-
-			 vector(const int len, T* arr) : _shape{ 1, len },
-											 _size( len )
-			 {
-				 _allocate();
-
-				 // TODO : Raise exception if rows * cols != len(arr)
-				 for (int i = 0; i < len; i++)
-					_set(1, arr[i]);
-			 }
-
-			 vector(matrix<T> M) : _shape{ 1, M.size() },
-								   _size( M.size() )
-			 {
-				 _allocate();
-
-				 // TODO : Raise exception if rows * cols != len(arr)
-				 for (int i = 0; i < M.shape()[0]; i++)
-					 for (int j = 0; j < M.shape()[1]; j++)
-						 _set(i * M.shape()[0] + j, M[i][j]);
-			 }
-
-			 int length() { return _size; }
-			
-			 // Vector operations
-			 T inner(vector<T> V)
-			 {
-				 // TODO: Check length of vectors match, throw if not
-
-				 T result(0.);
-				 for (int i = 0; i < length(); i++) { result += _get(i) * V[i]; }
-
-				 return result;
-			 }
-
-			 matrix<T> outer(vector<T> V)
-			 {
-				 square<T> result(length(), T(0.));
-
-				 for (int i = 0; i < length(); i++)
-					 for (int j = 0; j < length(); j++)
-						 result[i][j] = _get(i) * V[j];
-
-				 return result;
-			 }
-		 };
-
-		 template<typename T> 
-		 vector<T> cross(vector<T> V1, vector<T> V2)
-		 {
-			 if (V1.length() == 3 && V2.length == 3)
-			 {
-				 return vector<T>(3,
-					 V1[1] * V2[2] - V1[2] * V2[1],
-					 V1[0] * V2[2] - V1[2] * V2[0],
-					 V1[0] * V2[1] - V1[1] * V2[0]
-					 );
-			 
-			 } else {
-				 // raise exception
-			 }
-		 }
-
-		 template<typename T>
-		 square<T> skew(vector<T> V)
-		 {
-			 if (V.length() == 3)
-			 {
-				 return square<T>(3,
-					 T(0.), -V[2],  V[1],
-					  V[2], T(0.), -V[0],
-					 -V[1], V[0],   T(0.)
-					 );
-			 }
-			 else {
-				 // raise exception
-			 }
-		 }
-	}
+// Copyright (c) 2020 Kieran Downie. All rights reserved.
+//
+// This file is part of attitude.
+//
+// attitude is free software : you can redistribute it and /
+// or modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation,
+// either version 3 of the License,
+// or (at your option) any later version.
+//
+// attitude is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with attitude.  If not, see <https://www.gnu.org/licenses/>.
+//
+// -
+// matrix.h
+// Contains implementations for linear algebra formulations matrix and vector,
+// used in the attitude description parameter sets. Header-only.
+//
+// File namespace attitude::
+//
+#ifndef ATT_MATRIX_H_
+#define ATT_MATRIX_H_
+
+#include <initializer_list>
+
+namespace attitude {
+
+
+// matrix (class)
+// MxN matrix implementation. Matrix multiplication & 'division' operations 
+// defined. Templated so that can be defined for an element of any (primitive)
+// type, precision can be application specific.
+template <typename Tp, size_t rows, size_t cols>
+class matrix {
+  // ==================== matrix ====================
+ private:
+  Tp get_(int i) {
+    if (i < size_) {
+      return items_[i];
+    } /* else { throw InvalidIndex; } */
+  }
+  Tp get_(int i, int j) {
+    if (i < shape_[0] && j < shape_[1]) {
+      return items_[i * shape_[1] + j];
+    } /* else { throw InvalidIndex; } */
+  }
+
+  void set_(int i, int j, Tp val) {
+    if (i < shape_[0] && j < shape_[1]) {
+      items_[i * shape_[1] + j] = val;
+    } /* else { throw InvalidIndex; } */
+  }
+
+  void set_(int i, Tp val) {
+    if (i < size_) {
+      items_[i] = val;
+    } /* else { throw InvalidIndex; } */
+  }
+
+  void set_(Tp* arr) {
+    for (int i = 0; i < size_; i++) {
+      items_[i] = arr[i];
+    }
+  }
+
+ protected:
+  Tp items_[rows * cols];
+
+  const size_t size_ = rows * cols;
+  const size_t shape_[2]{rows, cols};
+
+ public:
+  matrix() {}
+  matrix(Tp arr[rows * cols]) { set_(arr); }
+
+  matrix(std::initializer_list<Tp> il) {
+    if (il.size() == 1) {
+      for (int i = 0; i < size_; ++i) {
+        items_[i] = *(il.begin());
+      }
+
+    } else if (il.size() == size_) {
+      std::copy(il.begin(), il.end(), items_);
+
+    } else {
+      throw("List initialiser length does not match matrix dimensions.");
+    }
+  }
+
+  template <typename Tp2>
+  matrix(std::initializer_list<Tp2> il) {
+    if (il.size() == 1) {
+      for (int i = 0; i < size_; ++i) {
+        items_[i] = *(il.begin());
+      }
+
+    } else if (il.size() == size_) {
+      std::copy(il.begin(), il.end(), items_);
+
+    } else {
+      throw("List initialiser length does not match matrix dimensions.");
+    }
+  }
+
+  template <typename Tp2, size_t rows2>
+  matrix(matrix<Tp2, rows2, (rows * cols) / rows2>& M) {
+    for (int i = 0; i < size_; i++) {
+      set_(i, M(i));
+    }
+  }
+
+  template <typename Tp2, size_t rows2>
+  matrix(matrix<Tp2, rows2, (rows * cols) / rows2>* M) {
+    for (int i = 0; i < size_; i++) {
+      set_(i, M->operator()(i));
+    }
+  }
+
+  const size_t size() { return size_; }
+  const size_t* shape() { return &shape_[0]; }
+
+  // transpose (function)
+  // Returns a new MxN transpose matrix (type Tp) of current NxM matrix
+  // instance. If A = B^T, all A_{i, j} = B_{j, i}.
+  matrix<Tp, cols, rows> transpose() {
+    matrix<Tp, cols, rows> transposed;
+
+    // Must create new object to store new values to avoid overwriting old
+    // values while needed.
+    for (int i = 0; i < shape_[0]; i++)
+      for (int j = 0; j < shape_[1]; j++)
+        transposed[j][i] = items_[i * cols + j];
+
+    return transposed;
+  }
+
+  // -------------------- Elementwise operations. --------------------
+
+  // + (function, operator)
+  // Elementwise matrix addition. New object created & returned.
+  matrix<Tp, rows, cols> operator+(matrix<Tp, rows, cols> M) {
+    matrix<Tp, rows, cols> result(this);
+
+    for (int i = 0; i < size_; ++i) result(i) += M(i);
+    return result;
+  }
+
+  // - (function, operator)
+  // Elementwise matrix subtraction. New object created & returned.
+  matrix<Tp, rows, cols> operator-(matrix<Tp, rows, cols> M) {
+    matrix<Tp, rows, cols> result(this);
+
+    for (int i = 0; i < size_; ++i) result(i) -= M(i);
+    return result;
+  }
+
+  // + (function, operator)
+  // Single value added to each matrix element. New object created & returned.
+  matrix<Tp, rows, cols> operator+(Tp val) {
+    matrix<Tp, rows, cols> result(this);
+
+    for (int i = 0; i < size_; ++i) result(i) += val;
+    return result;
+  }
+
+  // - (function, operator)
+  // Single value subtracted from each matrix element. New object created &
+  // returned.
+  matrix<Tp, rows, cols> operator-(Tp val) {
+    matrix<Tp, rows, cols> result(this);
+
+    for (int i = 0; i < size_; ++i) result(i) -= val;
+    return result;
+  }
+
+  // * (function, operator)
+  // Single factor applied to each matrix element. New object created &
+  // returned.
+  matrix<Tp, rows, cols> operator*(Tp val) {
+    matrix<Tp, rows, cols> result(this);
+
+    for (int i = 0; i < size_; ++i) result(i) *= val;
+    return result;
+  }
+
+  // / (function, operator)
+  // Single divisor applied to each matrix element. New object created &
+  // returned.
+  matrix<Tp, rows, cols> operator/(Tp val) {
+    matrix<Tp, rows, cols> result(this);
+
+    for (int i = 0; i < size_; ++i) result(i) /= val;
+    return result;
+  }
+
+  // += (function, operator)
+  // Elementwise matrix addition. Current instance modified, pointer returned.
+  matrix<Tp, rows, cols>* operator+=(matrix<Tp, rows, cols> M) {
+    for (int i = 0; i < size_; ++i) set_(i, get_(i) + M(i));
+    return this;
+  }
+
+  // -= (function, operator)
+  // Elementwise matrix subtraction. Current instance modified, pointer
+  // returned.
+  matrix<Tp, rows, cols>* operator-=(matrix<Tp, rows, cols> M) {
+    for (int i = 0; i < size_; ++i) set_(i, get_(i) - M(i));
+    return this;
+  }
+
+  // += (function, operator)
+  // Single value added to each matrix element. Current instance modified,
+  // pointer returned.
+  matrix<Tp, rows, cols>* operator+=(Tp val) {
+    for (int i = 0; i < size_; ++i) set_(i, get_(i) + val);
+    return this;
+  }
+
+  // -= (function, operator)
+  // Single value subtracted from each matrix element. Current instance
+  // modified, pointer returned.
+  matrix<Tp, rows, cols>* operator-=(Tp val) {
+    for (int i = 0; i < size_; ++i) set_(i, get_(i) - val);
+    return this;
+  }
+
+  // *= (function, operator)
+  // Single factor applied to each matrix element. Current instance modified,
+  // pointer returned.
+  matrix<Tp, rows, cols>* operator*=(Tp val) {
+    for (int i = 0; i < size_; ++i) set_(i, get_(i) * val);
+    return this;
+  }
+
+  // /= (function, operator)
+  // Single divisor applied to each matrix element. Current instance modiified,
+  // pointer returned.
+  //
+  matrix<Tp, rows, cols>* operator/=(Tp val) {
+    for (int i = 0; i < size_; ++i) set_(i, get_(i) / val);
+    return this;
+  }
+
+  // power (function)
+  // Elementise power function. Raises each element to specified exponent.
+  matrix<Tp, rows, cols> power(int exp) {
+    matrix<Tp, rows, cols> result(*(this));
+
+    for (int i = 0; i < size_; ++i) { result(i) = pow(get_(i), exp); }
+    return result;
+  }
+  // -------------------- Matrix operations. --------------------
+
+  // * (function, operator)
+  // Matrix multiplication. New instance created and returned.
+  template <size_t cols2>
+  matrix<Tp, rows, cols2> operator* (matrix<Tp, cols, cols2> M) {
+    const int shape[2]{shape_[0], M.shape()[1]};
+    matrix<Tp, rows, cols2> result{0.};
+
+    for (int i = 0; i < shape[0]; ++i) {
+      for (int j = 0; j < shape[1]; ++j) {
+        for (int k = 0; k < shape_[1]; ++k)
+          result[i][j] += get_(i, k) * M[k][j];
+      }
+    }
+    return result;
+  }
+
+  // *= (function, operator)
+  // Matrix multiplication. Current instance modiified, pointer returned.
+  template <size_t cols2>
+  matrix<Tp, rows, cols2>* operator*=(matrix<Tp, cols, cols2> M) {
+    const int shape[2]{shape_[0], M.shape()[1]};
+
+    // Must create new object to store new values to avoid overwriting old
+    // values while needed.
+    Tp items[rows * cols2]{0.};
+
+    for (int i = 0; i < shape[0]; ++i) {
+      for (int j = 0; j < shape[1]; ++j) {
+        for (int k = 0; k < shape_[1]; ++k)
+          items[i * shape[1] + j] += get_(i, k) * M[k][j];
+      }
+    }
+
+    set_(items);
+    return this;
+  }
+
+  // / (function, operator)
+  // Matrix division computed as divisor's inverse applied to current instance.
+  // i.e. [C] = [A]/[B] = [B]^{-1} * [A].
+  // Only possible with square right-hand matrix.
+  // New instance created and returned.
+  matrix<Tp, rows, cols> operator/(matrix<Tp, rows, rows> M) {
+    return inverse(M) * *(this);
+  }
+
+  // /= (function, operator)
+  // Matrix division computed as divisor's inverse applied to current instance.
+  // i.e. [C] = [A]/[B] = [B]^{-1} * [A]
+  // Only possible with square right-hand matrix.
+  // New instance created and pointer returned, current instance destructed.
+  matrix<Tp, rows, cols>* operator/=(matrix<Tp, rows, rows> M) {
+    matrix<Tp, rows, cols> result = inverse(M) * *(this);
+    *(this) = result;
+    return this;
+  }
+
+  // -------------------- Comparison operations. --------------------
+
+  // == (function, operator)
+  // Returns true if all elements match the value.
+  bool operator==(Tp val) {
+    for (int i = 0; i < size_; ++i)
+      if (!(get_(i) == val)) { return false; } 
+
+    return true;
+  }
+
+  // == (function, operator)
+  // Returns true if all elements are the same.
+  bool operator==(matrix<Tp, cols, rows> M) {
+    for (int i = 0; i < size_; ++i)
+      if (!(get_(i) == M(i))) { return false; }
+     
+    return true; 
+  }
+
+  // > (function, operator)
+  // Returns true if all elements are greater than the value.
+  bool operator>(Tp val) {
+    for (int i = 0; i < size_; ++i)
+      if (!(get_(i) > val)) { return false; }
+
+    return true;
+  }
+
+  // > (function, operator)
+  // Returns true if all elements are greater than all corresponding right-hand
+  // elements.
+  bool operator>(matrix<Tp, cols, rows> M) {
+    for (int i = 0; i < size_; ++i)
+      if (!(get_(i) > M(i))) { return false; }
+
+    return true;
+  }
+
+  // >= (function, operator)
+  // Returns true if all elements are greater than or equal to the value.
+  bool operator>=(Tp val) {
+    for (int i = 0; i < size_; ++i)
+      if (!(get_(i) >= val)) { return false; }
+
+    return true;
+  }
+
+  // >= (function, operator)
+  // Returns true if all elements are greater than or equal to all
+  // corresponding right-hand elements.
+  bool operator>=(matrix<Tp, cols, rows> M) {
+    for (int i = 0; i < size_; ++i)
+      if (!(get_(i) >= M(i))) { return false; }
+
+    return true;
+  }
+
+  // < (function, operator)
+  // Returns true if all elements are less than the value.
+  bool operator<(Tp val) {
+    for (int i = 0; i < size_; ++i)
+      if (!(get_(i) < val)) { return false; }
+     
+    return true;
+  }
+
+  // < (function, operator)
+  // Returns true if all elements are less than all corresponding right-hand
+  // elements.
+  bool operator<(matrix<Tp, cols, rows> M) {
+    for (int i = 0; i < size_; ++i)
+      if (!(get_(i) < M(i))) { return false; }
+
+    return true;
+  }
+
+  // <= (function, operator)
+  // Returns true if all elements are less than or equal to the value.
+  bool operator<=(Tp val) {
+    for (int i = 0; i < size_; ++i)
+      if (!(get_(i) <= val)) { return false; }
+
+    return true;
+  }
+
+  // <= (function, operator)
+  // Returns true if all elements are less than or equal to all corresponding
+  // right-hand elements.
+  bool operator<=(matrix<Tp, cols, rows> M) {
+    for (int i = 0; i < size_; ++i)
+      if (!(get_(i) <= M(i))) { return false; }
+
+    return true;
+  }
+
+  // -------------------- Indexing. --------------------
+  Tp & operator()(int i) { return items_[i]; }  // row major linear index. enables A(i) = val;
+  Tp * operator[](int i) { return &items_[i * shape_[1]]; }  // enables A[i][j] = val;
+
+  // -------------------- Assignment. --------------------
+  matrix<Tp, rows, cols>& operator= (matrix<Tp, rows, cols>& M) {
+    for (int i = 0; i < size_; ++i) { set_(i, M(i)); }
+    return *(this);
+  }
+
+};  // matrix
+
+// remove_rowi_colj (function)
+// Returns scalar-valued matrix determinant (type Tp)
+template <typename Tp, size_t n>
+matrix<Tp, n - 1, n - 1> remove_rowi_colj(size_t i, size_t j,
+                                          matrix<Tp, n, n> square) {
+  Tp reduced[(n - 1) * (n - 1)];
+  int kk = 0;
+
+  for (int k = 0; k < square.size(); ++k) {
+    if (!((k / n == i) || (k % n == j))) {
+      reduced[kk] = square(k);
+      kk += 1;
+    }
+  }
+  return matrix<Tp, n - 1, n - 1>(reduced);
 }
 
-template<typename T>
-void display(attitude::linalg::matrix<T> M)
-{
-	for (int i = 0; i < M.shape()[0]; i++)
-	{
-		std::cout << "[ ";
-		for (int j = 0; j < M.shape()[1]; j++)
-			std::cout << M[i][j] << ",";
+// ==================== Matrix Properties. ====================
+// ================== (non-member functions) ==================
 
-		std::cout << " ]" << std::endl;
-	}
+// trace (function)
+// Returns trace (type Tp) of matrix instance.
+template <typename Tp, size_t n>
+Tp trace(matrix<Tp, n, n> square) {
+  Tp trace = 0.;
+  for (int i = 0; i < n; ++i) trace += square[i][i];
+  return trace;
 }
-#endif // ATT_MATRIX_H
+
+// determinant (function)
+// Returns scalar-valued matrix determinant (type Tp). Recursive.
+// Determinant is sum along one dimension of matrix of minors.
+template <typename Tp, size_t n>
+Tp determinant(matrix<Tp, n, n> square) {
+  Tp det = 0.;
+  int scalar;
+
+  for (int k = 0; k < n; ++k) {
+    scalar = (k % 2 == 0) ? 1 : -1;
+    det += scalar * square[0][k] * determinant(remove_rowi_colj(0, k, square));
+  }
+  return det;
+}
+
+// Base case for matrix determinant function: 2x2.
+// Determinant is ad - bc.
+template <typename Tp>
+Tp determinant(matrix<Tp, 2, 2> square) {
+  return square[0][0] * square[1][1] - square[0][1] * square[1][0];
+}
+
+// cofactors (function)
+// Returns matrix of co-factors. Alternating factors
+// in [-1, 1] is applied to matrix of minors.
+template <typename Tp, size_t n>  // TODO: n > 2 enforced?
+matrix<Tp, n, n> cofactors(matrix<Tp, n, n> square) {
+  matrix<Tp, n, n> cofactor_matrix;
+  int scalar;
+
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < n; ++j) {
+      scalar = ((i * 3 + j) % 2 == 0) ? 1 : -1;
+
+      cofactor_matrix[i][j] =
+          scalar * determinant(remove_rowi_colj(i, j, square));
+    }
+  }
+  return cofactor_matrix;
+}
+
+// inverse (function)
+// Returns the inverse (element type Tp) of current matrix instance.
+// Matrix inverse is (1 / det) * [C] where [C] is cofactor matrix.
+template <typename Tp, size_t n>
+matrix<Tp, n, n> inverse(matrix<Tp, n, n> square) {
+  return cofactors(square).transpose() * (Tp(1.) / determinant(square));
+}
+
+
+
+// vector (class)
+// Nx1 matrix representation of vector. Vector operations encoded.
+// Derived from matrix class.
+template <typename Tp, size_t len>
+class vector : virtual public matrix<Tp, len, 1> {
+  // ==================== vector ====================
+ private:
+  Tp get_(int i) {
+    if (i < size_) {
+      return items_[i];
+    } /* else { throw InvalidIndex; } */
+  }
+
+  void set_(int i, Tp val) {
+    if (i < size_) {
+      items_[i] = val;
+    } /* else { throw InvalidIndex; } */
+  }
+
+  void set_(Tp arr[len]) {
+    for (int i = 0; i < size_; ++i) {
+      items_[i] = arr[i];
+    }
+  }
+
+ public:
+  vector() {}
+  vector(Tp arr[len]) { set_(arr); }
+
+  vector(std::initializer_list<Tp> il) {
+    if (il.size() == 1) {
+      for (int i = 0; i < size_; ++i) {
+        items_[i] = *(il.begin());
+      }
+
+    } else if (il.size() == size_) {
+      std::copy(il.begin(), il.end(), items_);
+
+    } else {
+      throw("List initialiser length does not match matrix dimensions.");
+    }
+  }
+
+  template <typename Tp2, size_t cols>
+  vector(matrix<Tp2, len / cols, cols> M) {
+    for (int i = 0; i < M.size(); ++i) set_(i, M(i));
+  }
+
+  const size_t length() { return size_; }
+
+  // -------------------- Vector Operations. --------------------
+
+  // inner (function)
+  // Returns inner (or dot) product of left & right-hand vectors. Scalar result.
+  Tp inner(vector<Tp, len> V) {
+    Tp result(0.);
+    for (int i = 0; i < length(); ++i) result += get_(i) * V[i];
+    return result;
+  }
+
+  // outer (function)
+  // Returns outer product of left & right hand vector. Symmetric matrix result.
+  matrix<Tp, len, len> outer(vector<Tp, len> V) {
+    square<Tp, len, len> result{0.};
+
+    for (int i = 0; i < length(); ++i)
+      for (int j = 0; j < length(); ++j) result[i][j] = get_(i) * V[j];
+
+    return result;
+  }
+
+  // -------------------- Indexing. --------------------
+  Tp & operator[](int i) { return items_[i]; }  // enables A[i][j] = val;
+
+
+};  // vector
+
+
+// cross (function)
+// Returns cross product of two inputted vectors. Result is a new vector
+//
+template <typename Tp>
+vector<Tp, 3> cross(vector<Tp, 3> lhs, vector<Tp, 3> rhs) {
+  return vector<Tp, 3>{
+    lhs[1] * rhs[2] - lhs[2] * rhs[1],
+    lhs[0] * rhs[2] - lhs[2] * rhs[0],
+    lhs[0] * rhs[1] - lhs[1] * rhs[0]
+  };
+}
+
+// tilde (function)
+// Returns tilde matrix based inputted vector. This is the matrix
+// equivalent pre-multiplier to the vector's cross product operation.
+// i.e. cross(v1, v2) == tilde(v1) * v2
+//
+template <typename Tp>
+matrix<Tp, 3, 3> tilde(vector<Tp, 3> vec) {
+  return matrix<Tp, 3, 3>{
+    Tp(0.), -vec[2],  vec[1], 
+    vec[2],  Tp(0.), -vec[0],
+   -vec[1],  vec[0], Tp(0.)
+  };
+}
+
+// EYE (function)
+// Returns nxn identity matrix. 
+//
+template <typename Tp, size_t n>
+matrix<Tp, n, n> EYE() {
+  matrix<Tp, n, n> identity{Tp(0.)};
+  for (int i = 0; i < n; ++i) {
+    identity[i][i] = 1.;
+  }
+  return identity;
+}
+
+}  // namespace attitude
+
+template <typename Tp, size_t r, size_t c>
+void display(attitude::matrix<Tp, r, c> M) {
+  printf("[ ");
+  for (int i = 0; i < M.size(); ++i) {
+    printf("%.2f, ", M(i));
+    if (((i + 1) % M.shape()[1]) == 0) {
+      printf("] \n");
+      if ((i + 1) != M.size()) {
+        printf("[ ");
+      }
+    }
+  }
+}
+
+#endif ATT_MATRIX_H_

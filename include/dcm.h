@@ -1,136 +1,87 @@
-#ifndef DCM_H
-#define DCM_H
+// Copyright (c) 2020 Kieran Downie. All rights reserved.
+//
+// This file is part of attitude.
+//
+// attitude is free software : you can redistribute it and /
+// or modify it under the terms of the GNU Lesser General Public License
+// as published by the Free Software Foundation,
+// either version 3 of the License,
+// or (at your option) any later version.
+//
+// attitude is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with attitude.  If not, see <https://www.gnu.org/licenses/>.
+//
+#ifndef ATT_DCM_H_
+#define ATT_DCM_H_
 
-// Compiler instructions - option for lightwight trig implementation?
-#include <cmath>
+#include <cmath> // TODO: Compiler instructions - option for lightwight trig implementation?
 
 #include "matrix.h"
 
-namespace attitude
-{
-    template<typename T>
-    class dcm_
-    {
-    private:
-        linalg::square<T> _R = linalg::square<T>(3);
+namespace attitude {
+namespace dcm {
 
-        dcm_() : _R{ 3, 1, 0, 0,
-                        0, 1, 0,
-                        0, 0, 1 } {}
-
-        T* _get(int i) { return _R[i]; }
-
-    public:
-        dcm_(linalg::square<T> R) : _R(R) {}
-
-        dcm_(T _1, T _2, T _3,
-             T _4, T _5, T _6,
-             T _7, T _8, T _9 ) : _R{ 3, _1, _2, _3, _4, _5, _6, _7, _8, _9 }
-        {}
-
-        dcm_<T> reverse() { return _R.transpose(); }
-
-        linalg::square<T> matrix() { return _R; }
-
-        dcm_<T> operator+(dcm_<T> R)
-        {
-            return dcm_<T>(_R * R.matrix());
-        }
-
-        dcm_<T> operator-(dcm_<T> R)
-        {
-            dcm_<T> R3 = operator+(R.reverse());
-            return R3;
-        }
-
-        dcm_<T>* operator+=(dcm_<T> R)
-        {
-            _R *= R.matrix();
-            return this;
-        }
-
-        dcm_<T>* operator-=(dcm_<T> R)
-        {
-            _R += R.matrix().transpose();
-            return this;
-        }
-
-        bool operator==(dcm_<T> R)
-        {
-            linalg::square<T> diff = _R - R.matrix();
-            return diff == T(0);
-        }
-
-        bool operator==(linalg::matrix<T> R) { return _R == R; } // TODO: remove, and add explicit flags to avoid implicit conversion from square to dcm
-
-        T* operator[](int i){ return _get(i); }
-    };
-
-    template<typename T>
-    dcm_<T> ZERO()
-    {
-        return dcm_<T>(T(1.), T(0.), T(0.),
-                       T(0.), T(1.), T(0.),
-                       T(0.), T(0.), T(1.) );
-    }
-
-    template<typename T>
-    dcm_<T> R1(T theta)
-    {
-        return dcm_<T>( T(1.), T(0.), T(0.),
-                        T(0.),  cos(theta), sin(theta),
-                        T(0.), -sin(theta), cos(theta) );
-    }
-
-    template<typename T>
-    dcm_<T> R2(T theta)
-    {
-        return dcm_<T>( cos(theta), T(0.), -sin(theta),
-                        T(0.), T(1.), T(0.),
-                        sin(theta), T(0.),  cos(theta) );
-    }
-
-    template<typename T>
-    dcm_<T> R3(T theta)
-    {
-        return dcm_<T>(  cos(theta), sin(theta), T(0.),
-                        -sin(theta), cos(theta), T(0.),
-                         T(0.), T(0.), T(1.) );
-    }
-
-    template<typename T>
-    dcm_<T> AXIS(int axis, T theta)
-    {
-        switch (axis) {
-            case 1:
-                return R1(theta);
-            case 2:
-                return R2(theta);
-            case 3:
-                return R3(theta);
-            default:
-                return ZERO<T>();
-        }
-    }
+// ZERO (function)
+// Returns rotation matrix for a zero rotation (identity).
+template <typename Tp>
+matrix<Tp, 3, 3> ZERO() {
+  return matrix<Tp, 3, 3>{1., 0., 0., 
+                          0., 1., 0.,
+                          0., 0., 1.};
 }
 
-template<typename T>
-void display(attitude::dcm_<T> R)
-{
-    attitude::linalg::square<T> _R = R.matrix();
 
-    for (int i = 0; i < 3; i++)
-    {
-        T* row = _R[i];
-
-        std::cout
-            << "[ "
-            << row[0] << ","
-            << row[1] << ","
-            << row[2]
-            << " ]"
-            << std::endl;
-    }
+// R1 (function)
+// Returns rotation matrix for a theta radian rotation about the first axis.
+template <typename Tp>
+matrix<Tp, 3, 3> R1(Tp theta) {
+  return matrix<Tp, 3, 3>{1.,          0.,         0.,
+                          0.,  cos(theta), sin(theta),
+                          0., -sin(theta), cos(theta)};
 }
 
-#endif // DCM_H
+
+// R2 (function)
+// Returns rotation matrix for a theta radian rotation about the second axis.
+template <typename Tp>
+matrix<Tp, 3, 3> R2(Tp theta) {
+  return matrix<Tp, 3, 3>{cos(theta), 0., -sin(theta), 
+                                  0., 1.,          0., 
+                          sin(theta), 0.,  cos(theta)};
+}
+
+
+// R3 (function)
+// Returns rotation matrix for a theta radian rotation about the third axis.
+template <typename Tp>
+matrix<Tp, 3, 3> R3(Tp theta) {
+  return matrix<Tp, 3, 3>{ cos(theta), sin(theta), 0., 
+                          -sin(theta), cos(theta), 0.,
+                                   0.,         0., 1.};
+}
+
+
+// AXIS (function)
+// Returns rotation matrix for a theta radian rotation about the specified axis.
+template <typename Tp>
+matrix<Tp, 3, 3> AXIS(int axis, Tp theta) {
+  switch (axis) {
+    case 1:
+      return R1(theta);
+    case 2:
+      return R2(theta);
+    case 3:
+      return R3(theta);
+    default:
+      return ZERO<Tp>();
+  }
+}
+
+} // namespace dcm
+} // namespace attitude
+#endif // ATT_DCM_H_
