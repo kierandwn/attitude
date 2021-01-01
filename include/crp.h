@@ -26,8 +26,8 @@
 #ifndef ATT_CRODR_H_
 #define ATT_CRODR_H_
 
-
 #include <cmath>
+#include <initializer_list>
 
 #include "base.h"
 #include "matrix.h"
@@ -110,7 +110,7 @@ class crp : public virtual description_set<Tp, 3> {
         matrix_[1][2] - matrix_[2][1],
         matrix_[2][0] - matrix_[0][2],
         matrix_[0][1] - matrix_[1][0]
-    } * (1. / 1. + trace(matrix_));
+    } * (1. / (1. + trace(matrix_)));
     update_dcm_ = false; // dcm & parameters are now consistent
   }
 

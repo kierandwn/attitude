@@ -11,11 +11,12 @@ TEST(EulerInstantiation, InstantiateEuler)
     euler<int> theta;
 }
 
-TEST(EulerInstantiation, DefaultIs0Rotation)
+TEST(EulerInstantiation, ZeroIs0Rotation)
 {
     // Zero method returns instatiates and returns identity.
-    euler<int> theta;
-    ASSERT_TRUE(theta[0] == 0 && theta[1] == 0 && theta[2] == 0);
+  euler<int> theta(0, 0, 0);
+  ASSERT_TRUE(theta[0] == 0 && theta[1] == 0 && theta[2] == 0);
+  ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(theta.matrix(), dcm::ZERO<int>());
 }
 
 TEST(EulerDebugging, STDOUTDisplay)
@@ -27,12 +28,11 @@ TEST(EulerDebugging, STDOUTDisplay)
 
 TEST(EulerMath, ConversionFromDCM)
 {
-  matrix<double, 3, 3> R = dcm::R1(random_angle<double>()) * 
-                           dcm::R2(random_angle<double>()) *
-                           dcm::R3(random_angle<double>());
+  matrix<double, 3, 3> R = random_rotation<double>();
+  euler<double> theta(R, 123);
+  theta[0] = theta[0];
 
-  euler<double> theta(R, randomise_order());
-  ASSERT_TRUE(theta == R);
+  ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(theta.matrix(), R);
 }
 
 TEST(EulerMath, ComparisonWithDCM)

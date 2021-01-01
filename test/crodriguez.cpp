@@ -41,7 +41,7 @@ TEST(CRPMath, AddRotations)
     crp<double> T1(dcm::R2<double>(alpha));
     crp<double> T2(dcm::R2<double>(beta));
     crp<double> T3 = T1 + T2;
-    ASSERT_TRUE(T3 == dcm::R2(alpha + beta));
+    ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(T3.matrix(), dcm::R2(alpha + beta));
 }
 
 TEST(CRPMath, SubtractRotations)
@@ -54,16 +54,26 @@ TEST(CRPMath, SubtractRotations)
     crp<double> T1(dcm::R2(alpha));
     crp<double> T2(dcm::R2(beta));
     crp<double> T3 = T1 - T2;
-    ASSERT_TRUE(T3 == dcm::R2<double>(alpha - beta));
+    ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(T3.matrix(), dcm::R2<double>(alpha - beta));
 }
 
 TEST(CRPUtility, Reverse)
 {
-    double alpha = random_angle<double>();
+  double alpha = random_angle<double>();
+  matrix<double, 3, 3> M = random_rotation<double>();
 
-    // Reversing DCM should be the same creating one in the negative direction.
-    crp<double> T1_pos(dcm::R1(alpha));
-    crp<double> T2_neg(dcm::R1(-1 * alpha));
-    ASSERT_TRUE(T2_neg == T1_pos.reverse());
+  // Reversing DCM should be the same creating one in the negative direction.
+  crp<double> q(M);
+
+  /*display(q.reverse().matrix());
+  display(M.transpose());*/
+
+  ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(q.reverse().matrix(), M.transpose());
+}
+
+TEST(CRPMath, DifferentialKinematicRelation) {
+  // Zero rotation results in 1:1 mapping between ang. vel and CRP rates
+  crp<double> q(dcm::ZERO<double>());
+  ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(q.dke(), EYE<double, 3>() * 0.5);
 }
 

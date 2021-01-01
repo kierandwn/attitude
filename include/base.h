@@ -25,6 +25,8 @@
 #ifndef ATT_BASE_H_
 #define ATT_BASE_H_
 
+#include <initializer_list>
+
 #include "matrix.h"
 
 namespace attitude {
@@ -42,7 +44,7 @@ class description_set {
   void set_(int i, Tp val) { items_[i] = val; } 
   void set_(Tp vals[n_items]) { items_ = vals; } 
 
-  bool update_dcm_ = true;
+  bool update_dcm_ = false;
   virtual void dcm_from_parameters_() = 0;
   virtual void parameters_from_dcm_() = 0;
 
@@ -94,7 +96,7 @@ class description_set {
   }
 
   // -------------------- DCM-based Addition/Subtraction. --------------------
-  // TODO: right now, cannot instantiate abstract class to 'set' - how can I define 
+  // TODO: right now, cannot instantiate abstract class to 'set' - but how can I define 
   // DCM based addition operations without writing it in every subclass?
   /*template <typename Tp2, size_t n2_items>
   auto operator+ (description_set<Tp2, n2_items> set) {
@@ -133,9 +135,9 @@ class description_set {
 // display (function)
 // STDOUT display for description sets. Items are display inline enclosed in curly braces.
 template <typename Tp, size_t n_items>
-void display(attitude::description_set<Tp, n_items> p) {
+void display(attitude::description_set<Tp, n_items> & p) {
   std::cout << "{ " << p[0];
-  for (int i < 1; i < n_items; ++i) { std::cout << ", " << p[i]; }
+  for (int i = 1; i < n_items; ++i) { std::cout << ", " << p[i]; }
   std::cout << " }" << std::endl;
 }
   

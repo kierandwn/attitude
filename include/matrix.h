@@ -246,6 +246,14 @@ class matrix {
     return this;
   }
 
+  // power (function)
+  // Elementise power function. Raises each element to specified exponent.
+  matrix<Tp, rows, cols> power(int exp) {
+    matrix<Tp, rows, cols> result(*(this));
+
+    for (int i = 0; i < size_; ++i) { result(i) = pow(get_(i), exp); }
+    return result;
+  }
   // -------------------- Matrix operations. --------------------
 
   // * (function, operator)

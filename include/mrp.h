@@ -26,6 +26,7 @@
 #ifndef ATT_MRODR_H_
 #define ATT_MRODR_H_
 
+#include <initializer_list>
 
 #include "base.h"
 #include "matrix.h"
@@ -68,7 +69,7 @@ class mrp : public virtual description_set<Tp, 3> {
 
   // reverse (function)
   // Returns the reverse rotation represented as a MRP.
-  mrp<Tp> reverse() { return mrp<Tp>(items_ * -1); }
+   mrp<Tp> reverse() { return mrp<Tp>(items_ * -1); }
 
 
   // -------------------- Classical Rodriguez Addition/Subtraction. --------------------
@@ -142,9 +143,9 @@ class mrp : public virtual description_set<Tp, 3> {
     shepherds_rule(matrix_, quaternion);
 
     Tp sigma[3] {
-        quaternion[1] / quaternion[0],
-        quaternion[2] / quaternion[0],
-        quaternion[3] / quaternion[0]
+        quaternion[1] / (1. + quaternion[0]),
+        quaternion[2] / (1. + quaternion[0]),
+        quaternion[3] / (1. + quaternion[0])
     };
 
     set_(sigma);
@@ -159,9 +160,12 @@ class mrp : public virtual description_set<Tp, 3> {
     matrix_ = EYE<Tp, 3>() + ((tilde(items_) * tilde(items_) * 8) - (tilde(items_) * (4 * (1 - norm2)))) /
         pow(1 + norm2, 2);
 
+    //matrix_ = EYE<Tp, 3>() - tilde(items_) * (((1 - norm2) * 4) / pow(1 + norm2, 2)) + (tilde(items_) * tilde(items_)) * (8 / pow(1 + norm2, 2));
+
     update_dcm_ = false; // dcm & parameters are now consistent
   }
 };
+
 
 } // namespace attitude
 #endif  // ATT_MRODR_H_

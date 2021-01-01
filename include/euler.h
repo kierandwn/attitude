@@ -27,6 +27,7 @@
 #define ATT_EULER_H_
 
 #include <cmath>
+#include <initializer_list>
 
 #include "base.h"
 #include "matrix.h"
@@ -196,9 +197,9 @@ public:
     uint8_t j = (ijk_ - (i * 100)) / 10;
     uint8_t k = (ijk_ - (i * 100) - (j * 10));
 
-    matrix_  = dcm::AXIS(i, items_[0]);
-    matrix_ *= dcm::AXIS(j, items_[1]);
-    matrix_ *= dcm::AXIS(k, items_[2]);
+    matrix_  = dcm::AXIS(k, items_[2]) *
+               dcm::AXIS(j, items_[1]) *
+               dcm::AXIS(i, items_[0]);
     update_dcm_ = false; // dcm & parameters are now consistent
   }
 };

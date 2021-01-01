@@ -34,36 +34,36 @@ TEST(QuaternionMath, ConversionFromDCM)
 
 TEST(QuaternionMath, AddRotations)
 {
-    // Adding rotations.
-    double alpha = random_angle<double>();
-    double beta  = random_angle<double>();
+  // Adding rotations.
+  double alpha = random_angle<double>();
+  double beta  = random_angle<double>();
 
-    quaternion<double> T1(dcm::R2<double>(alpha));
-    quaternion<double> T2(dcm::R2<double>(beta));
-    quaternion<double> T3 = T1 + T2;
-    ASSERT_TRUE(T3 == dcm::R2(alpha + beta));
+  quaternion<double> T1(dcm::R2<double>(alpha));
+  quaternion<double> T2(dcm::R2<double>(beta));
+  quaternion<double> T3 = T1 + T2;
+  ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(T3.matrix(), dcm::R2(alpha + beta));
 }
 
 TEST(QuaternionMath, SubtractRotations)
 {
-    // Adding rotations.
-    double alpha = random_angle<double>();
-    double beta = random_angle<double>();
+  // Adding rotations.
+  double alpha = random_angle<double>();
+  double beta = random_angle<double>();
 
-    // Subtracting rotations.
-    quaternion<double> T1(dcm::R2(alpha));
-    quaternion<double> T2(dcm::R2(beta));
-    quaternion<double> T3 = T1 - T2;
-    ASSERT_TRUE(T3 == dcm::R2<double>(alpha - beta));
+  // Subtracting rotations.
+  quaternion<double> T1(dcm::R2(alpha));
+  quaternion<double> T2(dcm::R2(beta));
+  quaternion<double> T3 = T1 - T2;
+  ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(T3.matrix(), dcm::R2(alpha - beta));
 }
 
 TEST(QuaternionUtility, Reverse)
 {
-    double alpha = random_angle<double>();
+  double alpha = random_angle<double>();
 
-    // Reversing DCM should be the same creating one in the negative direction.
-    quaternion<double> T1_pos(dcm::R1(alpha));
-    quaternion<double> T2_neg(dcm::R1(-1 * alpha));
-    ASSERT_TRUE(T2_neg == T1_pos.reverse());
+  // Reversing DCM should be the same creating one in the negative direction.
+  quaternion<double> T1_pos(dcm::R1(alpha));
+  quaternion<double> T2_neg(dcm::R1(-1 * alpha));
+  ASSERT_TRUE(T2_neg == T1_pos.reverse());
 }
 

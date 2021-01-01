@@ -26,6 +26,7 @@
 #ifndef ATT_QUATERNION_H_
 #define ATT_QUATERNION_H_
 
+#include <initializer_list>
 
 #include "base.h"
 #include "matrix.h"
