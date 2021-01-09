@@ -27,6 +27,7 @@
 #define ATT_MATRIX_H_
 
 #include <initializer_list>
+#include <algorithm>
 
 namespace attitude {
 
@@ -544,12 +545,22 @@ class vector : virtual public matrix<Tp, len, 1> {
     }
   }
 
+  vector(matrix<Tp, len, 1> M) {
+    for (int i = 0; i < M.size(); ++i) set_(i, M(i));
+  }
+
   template <typename Tp2, size_t cols>
   vector(matrix<Tp2, len / cols, cols> M) {
     for (int i = 0; i < M.size(); ++i) set_(i, M(i));
   }
 
   const size_t length() { return size_; }
+
+  Tp norm(){
+    Tp norm_sq = Tp(0.);
+    for (int i = 0; i < len; ++i) { norm_sq += pow(get_(i), 2); }
+    return sqrt(norm_sq);
+  }
 
   // -------------------- Vector Operations. --------------------
 
@@ -564,7 +575,7 @@ class vector : virtual public matrix<Tp, len, 1> {
   // outer (function)
   // Returns outer product of left & right hand vector. Symmetric matrix result.
   matrix<Tp, len, len> outer(vector<Tp, len> V) {
-    square<Tp, len, len> result{0.};
+    matrix<Tp, len, len> result{0.};
 
     for (int i = 0; i < length(); ++i)
       for (int j = 0; j < length(); ++j) result[i][j] = get_(i) * V[j];
@@ -605,11 +616,11 @@ matrix<Tp, 3, 3> tilde(vector<Tp, 3> vec) {
   };
 }
 
-// EYE (function)
+// eye (function)
 // Returns nxn identity matrix. 
 //
 template <typename Tp, size_t n>
-matrix<Tp, n, n> EYE() {
+matrix<Tp, n, n> eye() {
   matrix<Tp, n, n> identity{Tp(0.)};
   for (int i = 0; i < n; ++i) {
     identity[i][i] = 1.;
@@ -617,13 +628,14 @@ matrix<Tp, n, n> EYE() {
   return identity;
 }
 
+
 }  // namespace attitude
 
 template <typename Tp, size_t r, size_t c>
 void display(attitude::matrix<Tp, r, c> M) {
   printf("[ ");
   for (int i = 0; i < M.size(); ++i) {
-    printf("%.2f, ", M(i));
+    printf("%.8f, ", M(i));
     if (((i + 1) % M.shape()[1]) == 0) {
       printf("] \n");
       if ((i + 1) != M.size()) {
