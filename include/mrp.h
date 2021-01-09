@@ -48,8 +48,8 @@ class mrp : public virtual description_set<Tp, 3> {
 
   mrp(Tp s1, Tp s2, Tp s3) : description_set{s1, s2, s3} { dcm_from_parameters_(); }
 
-  mrp(::matrix<Tp, 3, 3> R) : description_set(R) { parameters_from_dcm_(); }
-  mrp(::vector<Tp, 3> s) : description_set{s[0], s[1], s[2]} { dcm_from_parameters_(); }
+  mrp(attitude::matrix<Tp, 3, 3> R) : description_set(R) { parameters_from_dcm_(); }
+  mrp(attitude::vector<Tp, 3> s) : description_set{s[0], s[1], s[2]} { dcm_from_parameters_(); }
 
   template <typename Tp2, size_t n2_items>
   mrp(description_set<Tp2, n2_items> * set) : description_set(set) {}
@@ -57,10 +57,10 @@ class mrp : public virtual description_set<Tp, 3> {
   // dke (function)
   // Returns a new 3x3 matrix (type Tp) that maps angular velocity onto modified
   // rodriguez rates.
-  ::matrix<Tp, 3, 3> dke() override {
+  attitude::matrix<Tp, 3, 3> dke() override {
     Tp norm2 = pow(get_(0), 2) + pow(get_(1), 2) + pow(get_(2), 2);
 
-    return ::matrix<Tp, 3, 3>{
+    return attitude::matrix<Tp, 3, 3>{
         1. - norm2 + 2. * pow(get_(0), 2), 2. * (get_(0) * get_(1) - get_(2)), 2. * (get_(0) * get_(2) + get_(1)), 
         2. * (get_(0) * get_(1) + get_(2)), 1. - norm2 + 2. * pow(get_(1), 2), 2. * (get_(1) * get_(2) - get_(0)), 
         2. * (get_(0) * get_(2) - get_(1)), 2. * (get_(1) * get_(2) + get_(0)), 1. - norm2 + 2. * pow(get_(2), 2)
@@ -69,8 +69,19 @@ class mrp : public virtual description_set<Tp, 3> {
 
   // reverse (function)
   // Returns the reverse rotation represented as a MRP.
-   mrp<Tp> reverse() { return mrp<Tp>(items_ * -1); }
+  mrp<Tp> reverse() { return mrp<Tp>(items_ * -1); }
 
+  // norm (function)
+  // Returns vector norm of MRP parameter set.
+  Tp norm() { return items_.norm(); }
+
+  mrp<Tp> switched() {
+    if (items_.norm() > 1.) {
+      return mrp<Tp>(items_ / pow(items_.norm(), 2));
+    } else {
+      return *(this);
+    }
+  }
 
   // -------------------- Classical Rodriguez Addition/Subtraction. --------------------
   mrp<Tp> operator+ (mrp<Tp> rhs) {
@@ -115,17 +126,17 @@ class mrp : public virtual description_set<Tp, 3> {
     return this;
   }
 
-  mrp<Tp> * operator-= (mrp<Tp> q) {
+  mrp<Tp> * operator-= (mrp<Tp> rhs) {
     Tp lhs_norm2 = pow(get_(0), 2) + pow(get_(1), 2) + pow(get_(2), 2);
-    Tp rhs_norm2 = pow(q[0], 2) + pow(q[1], 2) + pow(q[2], 2);
+    Tp rhs_norm2 = pow(rhs[0], 2) + pow(rhs[1], 2) + pow(rhs[2], 2);
 
     vector<Tp, 3> rhs_vec{rhs[0], rhs[1], rhs[2]};
 
     vector<Tp, 3> result(
-        (items_ * (1 - rhs_norm2) - rhs_vec * (1 - lhs_norm2) + 2 * items_.cross(rhs_vec)) /
+        (items_ * (1. - rhs_norm2) - rhs_vec * (1. - lhs_norm2) + cross(items_, rhs_vec) * 2.) /
         (1 + rhs_norm2 * lhs_norm2 + 2 * rhs_vec.inner(items_)));
 
-    set_([ result[0], result[1], result[2] ]);
+    set_(result);
     return this;
   }
 
@@ -157,7 +168,7 @@ class mrp : public virtual description_set<Tp, 3> {
   void dcm_from_parameters_() override {
     Tp norm2 = pow(get_(0), 2) + pow(get_(1), 2) + pow(get_(2), 2);
 
-    matrix_ = EYE<Tp, 3>() + ((tilde(items_) * tilde(items_) * 8) - (tilde(items_) * (4 * (1 - norm2)))) /
+    matrix_ = eye<Tp, 3>() + ((tilde(items_) * tilde(items_) * 8) - (tilde(items_) * (4 * (1 - norm2)))) /
         pow(1 + norm2, 2);
 
     //matrix_ = EYE<Tp, 3>() - tilde(items_) * (((1 - norm2) * 4) / pow(1 + norm2, 2)) + (tilde(items_) * tilde(items_)) * (8 / pow(1 + norm2, 2));
