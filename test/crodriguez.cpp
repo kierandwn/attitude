@@ -74,6 +74,6 @@ TEST(CRPUtility, Reverse)
 TEST(CRPMath, DifferentialKinematicRelation) {
   // Zero rotation results in 1:1 mapping between ang. vel and CRP rates
   crp<double> q(dcm::ZERO<double>());
-  ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(q.dke(), EYE<double, 3>() * 0.5);
+  ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(q.dke(), eye<double, 3>() * 0.5);
 }
 

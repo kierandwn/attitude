@@ -73,7 +73,7 @@ TEST(MRPMath, SubtractRotations) {
 TEST(MRPMath, DifferentialKinematicRelation) {
   // Zero rotation results in 1:1 mapping between ang. vel and MRP rates
   mrp<double> sigma(dcm::ZERO<double>());
-  ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(sigma.dke(), EYE<double, 3>() * 0.25);
+  ASSERT_EQUAL_WITHIN_NUMERICAL_PRECISION(sigma.dke(), eye<double, 3>() * 0.25);
 }
 
 TEST(MRPUtility, Reverse)
