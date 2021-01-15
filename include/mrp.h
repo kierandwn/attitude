@@ -75,12 +75,8 @@ class mrp : public virtual description_set<Tp, 3> {
   // Returns vector norm of MRP parameter set.
   Tp norm() { return items_.norm(); }
 
-  mrp<Tp> switched() {
-    if (items_.norm() > 1.) {
-      return mrp<Tp>(items_ / pow(items_.norm(), 2));
-    } else {
-      return *(this);
-    }
+  mrp<Tp> shadow() {
+    return mrp<Tp>(items_ * (-1. / pow(items_.norm(), 2)));
   }
 
   // -------------------- Classical Rodriguez Addition/Subtraction. --------------------
@@ -159,6 +155,14 @@ class mrp : public virtual description_set<Tp, 3> {
         quaternion[3] / (1. + quaternion[0])
     };
 
+    // Ensure MRP describes short rotation.
+    Tp norm2 = pow(sigma[0], 2) + pow(sigma[1], 2) + pow(sigma[2], 2);
+    if (norm2 > 1.) {
+      sigma[0] = sigma[0] * (-1. / norm2);
+      sigma[1] = sigma[1] * (-1. / norm2);
+      sigma[2] = sigma[2] * (-1. / norm2);
+    }
+
     set_(sigma);
     update_dcm_ = false; // dcm & parameters are now consistent
   }
@@ -166,12 +170,11 @@ class mrp : public virtual description_set<Tp, 3> {
   // dcm_from_parameters_ (function)
   // Computes the directional cosine matrix from modified rodriguez components.
   void dcm_from_parameters_() override {
+
     Tp norm2 = pow(get_(0), 2) + pow(get_(1), 2) + pow(get_(2), 2);
-
-    matrix_ = eye<Tp, 3>() + ((tilde(items_) * tilde(items_) * 8) - (tilde(items_) * (4 * (1 - norm2)))) /
-        pow(1 + norm2, 2);
-
-    //matrix_ = EYE<Tp, 3>() - tilde(items_) * (((1 - norm2) * 4) / pow(1 + norm2, 2)) + (tilde(items_) * tilde(items_)) * (8 / pow(1 + norm2, 2));
+    matrix_ =
+        eye<Tp, 3>() + ((tilde(items_) * tilde(items_) * 8) - (tilde(items_) * (4 * (1 - norm2)))) /
+            pow(1 + norm2, 2);
 
     update_dcm_ = false; // dcm & parameters are now consistent
   }
