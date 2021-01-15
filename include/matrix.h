@@ -597,7 +597,7 @@ template <typename Tp>
 vector<Tp, 3> cross(vector<Tp, 3> lhs, vector<Tp, 3> rhs) {
   return vector<Tp, 3>{
     lhs[1] * rhs[2] - lhs[2] * rhs[1],
-    lhs[0] * rhs[2] - lhs[2] * rhs[0],
+    -1 * (lhs[0] * rhs[2] - lhs[2] * rhs[0]),
     lhs[0] * rhs[1] - lhs[1] * rhs[0]
   };
 }
