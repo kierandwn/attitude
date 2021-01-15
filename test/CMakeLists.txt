@@ -1,4 +1,4 @@
-﻿set(BINARY ${CMAKE_PROJECT_NAME}_test)
+﻿set(BINARY attitude_test)
 
 file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false *.h *.cpp)
 
