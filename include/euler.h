@@ -31,6 +31,7 @@
 
 #include "base.h"
 #include "matrix.h"
+#include "dcm.h"
 
 namespace attitude {
 
@@ -57,7 +58,7 @@ public:
   euler(description_set<Tp2, n2_items> set) : description_set(set) 
   { parameters_from_dcm_(); }
 
-  euler(::matrix<Tp, 3, 3> R, uint16_t ijk=123) 
+  euler(attitude::matrix<Tp, 3, 3> R, uint16_t ijk=123) 
       : description_set(R),
         ijk_(ijk)
   { parameters_from_dcm_(); }
@@ -65,7 +66,7 @@ public:
   // dke (function)
   // Returns a new 3x3 matrix (type Tp) that maps angular velocity
   // onto euler rates.
-  ::matrix<Tp, 3, 3> dke() override {
+  attitude::matrix<Tp, 3, 3> dke() override {
     switch (order()) {
       case 123:
         return
@@ -84,7 +85,7 @@ public:
         };
       
       default:
-        return EYE<Tp, 3>(); // identity
+        return eye<Tp, 3>(); // identity
     }
   }
 
@@ -113,6 +114,20 @@ public:
   euler<Tp> * operator-= (euler<Tp> theta) {
     matrix_ /= theta.matrix();
     parameters_from_dcm_();
+    return this;
+  }
+
+  euler<Tp> operator* (Tp scalar) {
+    return euler<Tp>(
+      items_[0] * scalar, 
+      items_[1] * scalar, 
+      items_[2] * scalar,
+      order());
+  }
+
+  euler<Tp> * operator *= (Tp scalar) {
+    items_ *= scalar;
+    update_dcm_ = true;
     return this;
   }
 

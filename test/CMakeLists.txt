@@ -1,12 +1,14 @@
-﻿set(BINARY attitude_test)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+add_subdirectory(./lib/googletest)
+
+include_directories("include")
 
 file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false *.h *.cpp)
+#set(SOURCES ${TEST_SOURCES})
 
-set(SOURCES ${TEST_SOURCES})
+set(TEST_EXEC attitude_test)
 
-add_executable(${BINARY} ${TEST_SOURCES})
+add_executable(${TEST_EXEC} ${TEST_SOURCES})
+target_link_libraries(attitude_test PUBLIC gtest)
 
-add_test(NAME ${BINARY} COMMAND ${BINARY})
-
-# target_link_libraries(${BINARY} PUBLIC ${CMAKE_PROJECT_NAME}_lib gtest)
-target_link_libraries(${BINARY} PUBLIC gtest)
+add_test(NAME attitude_test COMMAND attitude_test)

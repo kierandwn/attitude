@@ -26,6 +26,7 @@
 #define ATT_BASE_H_
 
 #include <initializer_list>
+#include <iostream>
 
 #include "matrix.h"
 
@@ -43,6 +44,7 @@ class description_set {
   Tp get_(int i) { return items_[i]; } 
   void set_(int i, Tp val) { items_[i] = val; } 
   void set_(Tp vals[n_items]) { items_ = vals; } 
+  void set_(vector<Tp, n_items> vals) { items_ = vals; } 
 
   bool update_dcm_ = false;
   virtual void dcm_from_parameters_() = 0;
@@ -136,8 +138,10 @@ class description_set {
 // STDOUT display for description sets. Items are display inline enclosed in curly braces.
 template <typename Tp, size_t n_items>
 void display(attitude::description_set<Tp, n_items> & p) {
-  std::cout << "{ " << p[0];
-  for (int i = 1; i < n_items; ++i) { std::cout << ", " << p[i]; }
+  printf("{ %.8f", p[0]);
+  for (int i = 1; i < n_items; ++i) {
+    printf(", %.8f", p[i]);
+  }
   std::cout << " }" << std::endl;
 }
   
