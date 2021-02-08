@@ -48,7 +48,7 @@ class crp : public virtual description_set<Tp, 3> {
   crp() {}
 
   crp(Tp q1, Tp q2, Tp q3) : description_set{q1, q2, q3} { dcm_from_parameters_(); }
-  crp(::matrix<Tp, 3, 3> R) : description_set(R) { parameters_from_dcm_(); }
+  crp(::mn_matrix<Tp, 3, 3> R) : description_set(R) { parameters_from_dcm_(); }
   crp(::vector<Tp, 3> q) : description_set{q[0], q[1], q[2]} { dcm_from_parameters_(); }
 
   template <typename Tp2, size_t n2_items>
@@ -57,8 +57,8 @@ class crp : public virtual description_set<Tp, 3> {
   // dke (function)
   // Returns a new 3x3 matrix (type Tp) that maps angular velocity onto classical
   // rodriguez rates.
-  ::matrix<Tp, 3, 3> dke() override {
-    return ::matrix<Tp, 3, 3>{
+  ::mn_matrix<Tp, 3, 3> dke() override {
+    return ::mn_matrix<Tp, 3, 3>{
       1. + pow(get_(0), 2), get_(0) * get_(1) - get_(2), get_(0) * get_(2) + get_(1),
       get_(0) * get_(1) + get_(2), 1. + pow(get_(1), 2), get_(1) * get_(2) - get_(0),
       get_(0) * get_(2) - get_(1), get_(1) * get_(2) + get_(0), 1. + pow(get_(2), 2)
@@ -119,7 +119,7 @@ class crp : public virtual description_set<Tp, 3> {
   void dcm_from_parameters_() override {
     Tp norm2 = pow(get_(0), 2) + pow(get_(1), 2) + pow(get_(2), 2);
 
-    matrix_ = ::matrix<Tp, 3, 3>{
+    matrix_ = ::mn_matrix<Tp, 3, 3>{
       // Row 1
       1 + pow(get_(0), 2) - pow(get_(1), 2) - pow(get_(2), 2),
       2. * (get_(0) * get_(1) + get_(2)), 

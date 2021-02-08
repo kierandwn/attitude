@@ -47,7 +47,7 @@ class quaternion : public virtual description_set<Tp, 4> {
   quaternion(Tp q0, Tp q1, Tp q2, Tp q3) : description_set{q0, q1, q2, q3} 
   { dcm_from_parameters_(); }
   
-  quaternion(::matrix<Tp, 3, 3> R) : description_set(R) 
+  quaternion(::mn_matrix<Tp, 3, 3> R) : description_set(R) 
   { parameters_from_dcm_(); }
 
   template <typename Tp2, size_t n2_items>
@@ -56,8 +56,8 @@ class quaternion : public virtual description_set<Tp, 4> {
   // dke (function)
   // Returns a new 4x4 matrix (type Tp) that maps modified angular velocity
   // vector onto euler rates. (mod. angular velocity vec [0, w1, w2, w3]^T).
-  ::matrix<Tp, 4, 4> dke() override {
-    return ::matrix<Tp, 4, 4>{
+  ::mn_matrix<Tp, 4, 4> dke() override {
+    return ::mn_matrix<Tp, 4, 4>{
         get_(0), -1 * get_(1), -1 * get_(2), -1 * get_(3),
         get_(1),      get_(0), -1 * get_(3),      get_(2),
         get_(2),      get_(3),      get_(0), -1 * get_(1),
@@ -109,7 +109,7 @@ class quaternion : public virtual description_set<Tp, 4> {
 
     // -------------------- Comparison. --------------------
     bool operator==(quaternion<Tp> q) { return matrix() == q.matrix(); }
-    bool operator==(::matrix<Tp, 3, 3> rhs) { return matrix() == rhs; }
+    bool operator==(::mn_matrix<Tp, 3, 3> rhs) { return matrix() == rhs; }
 
  private:
   // -------------------- Description set virtual overrides. --------------------

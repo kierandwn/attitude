@@ -29,8 +29,8 @@ namespace dcm {
 // ZERO (function)
 // Returns rotation matrix for a zero rotation (identity).
 template <typename Tp>
-matrix<Tp, 3, 3> ZERO() {
-  return matrix<Tp, 3, 3>{1., 0., 0., 
+mn_matrix<Tp, 3, 3> ZERO() {
+  return mn_matrix<Tp, 3, 3>{1., 0., 0., 
                           0., 1., 0.,
                           0., 0., 1.};
 }
@@ -39,8 +39,8 @@ matrix<Tp, 3, 3> ZERO() {
 // R1 (function)
 // Returns rotation matrix for a theta radian rotation about the first axis.
 template <typename Tp>
-matrix<Tp, 3, 3> R1(Tp theta) {
-  return matrix<Tp, 3, 3>{1.,          0.,         0.,
+mn_matrix<Tp, 3, 3> R1(Tp theta) {
+  return mn_matrix<Tp, 3, 3>{1.,          0.,         0.,
                           0.,  cos(theta), sin(theta),
                           0., -sin(theta), cos(theta)};
 }
@@ -49,8 +49,8 @@ matrix<Tp, 3, 3> R1(Tp theta) {
 // R2 (function)
 // Returns rotation matrix for a theta radian rotation about the second axis.
 template <typename Tp>
-matrix<Tp, 3, 3> R2(Tp theta) {
-  return matrix<Tp, 3, 3>{cos(theta), 0., -sin(theta), 
+mn_matrix<Tp, 3, 3> R2(Tp theta) {
+  return mn_matrix<Tp, 3, 3>{cos(theta), 0., -sin(theta), 
                                   0., 1.,          0., 
                           sin(theta), 0.,  cos(theta)};
 }
@@ -59,8 +59,8 @@ matrix<Tp, 3, 3> R2(Tp theta) {
 // R3 (function)
 // Returns rotation matrix for a theta radian rotation about the third axis.
 template <typename Tp>
-matrix<Tp, 3, 3> R3(Tp theta) {
-  return matrix<Tp, 3, 3>{ cos(theta), sin(theta), 0., 
+mn_matrix<Tp, 3, 3> R3(Tp theta) {
+  return mn_matrix<Tp, 3, 3>{ cos(theta), sin(theta), 0., 
                           -sin(theta), cos(theta), 0.,
                                    0.,         0., 1.};
 }
@@ -69,7 +69,7 @@ matrix<Tp, 3, 3> R3(Tp theta) {
 // AXIS (function)
 // Returns rotation matrix for a theta radian rotation about the specified axis.
 template <typename Tp>
-matrix<Tp, 3, 3> AXIS(int axis, Tp theta) {
+mn_matrix<Tp, 3, 3> AXIS(int axis, Tp theta) {
   switch (axis) {
     case 1:
       return R1(theta);

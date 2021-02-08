@@ -32,12 +32,12 @@
 namespace attitude {
 
 
-// matrix (class)
+// mn_matrix (class)
 // MxN matrix implementation. Matrix multiplication & 'division' operations 
 // defined. Templated so that can be defined for an element of any (primitive)
 // type, precision can be application specific.
 template <typename Tp, size_t rows, size_t cols>
-class matrix {
+class mn_matrix {
   // ==================== matrix ====================
  protected:
   Tp items_[rows * cols];
@@ -76,10 +76,10 @@ class matrix {
   }
 
  public:
-  matrix() {}
-  matrix(Tp arr[rows * cols]) { set_(arr); }
+  mn_matrix() {}
+  mn_matrix(Tp arr[rows * cols]) { set_(arr); }
 
-  matrix(std::initializer_list<Tp> il) {
+  mn_matrix(std::initializer_list<Tp> il) {
     if (il.size() == 1) {
       for (int i = 0; i < size_; ++i) {
         items_[i] = *(il.begin());
@@ -94,7 +94,7 @@ class matrix {
   }
 
   template <typename Tp2>
-  matrix(std::initializer_list<Tp2> il) {
+  mn_matrix(std::initializer_list<Tp2> il) {
     if (il.size() == 1) {
       for (int i = 0; i < size_; ++i) {
         items_[i] = *(il.begin());
@@ -109,14 +109,14 @@ class matrix {
   }
 
   template <typename Tp2, size_t rows2>
-  matrix(matrix<Tp2, rows2, (rows * cols) / rows2>& M) {
+  mn_matrix(mn_matrix<Tp2, rows2, (rows * cols) / rows2>& M) {
     for (int i = 0; i < size_; i++) {
       set_(i, M(i));
     }
   }
 
   template <typename Tp2, size_t rows2>
-  matrix(matrix<Tp2, rows2, (rows * cols) / rows2>* M) {
+  mn_matrix(mn_matrix<Tp2, rows2, (rows * cols) / rows2>* M) {
     for (int i = 0; i < size_; i++) {
       set_(i, M->operator()(i));
     }
@@ -128,8 +128,8 @@ class matrix {
   // transpose (function)
   // Returns a new MxN transpose matrix (type Tp) of current NxM matrix
   // instance. If A = B^T, all A_{i, j} = B_{j, i}.
-  matrix<Tp, cols, rows> transpose() {
-    matrix<Tp, cols, rows> transposed;
+  mn_matrix<Tp, cols, rows> transpose() {
+    mn_matrix<Tp, cols, rows> transposed;
 
     // Must create new object to store new values to avoid overwriting old
     // values while needed.
@@ -144,8 +144,8 @@ class matrix {
 
   // + (function, operator)
   // Elementwise matrix addition. New object created & returned.
-  matrix<Tp, rows, cols> operator+(matrix<Tp, rows, cols> M) {
-    matrix<Tp, rows, cols> result(this);
+  mn_matrix<Tp, rows, cols> operator+(mn_matrix<Tp, rows, cols> M) {
+    mn_matrix<Tp, rows, cols> result(this);
 
     for (int i = 0; i < size_; ++i) result(i) += M(i);
     return result;
@@ -153,8 +153,8 @@ class matrix {
 
   // - (function, operator)
   // Elementwise matrix subtraction. New object created & returned.
-  matrix<Tp, rows, cols> operator-(matrix<Tp, rows, cols> M) {
-    matrix<Tp, rows, cols> result(this);
+  mn_matrix<Tp, rows, cols> operator-(mn_matrix<Tp, rows, cols> M) {
+    mn_matrix<Tp, rows, cols> result(this);
 
     for (int i = 0; i < size_; ++i) result(i) -= M(i);
     return result;
@@ -162,8 +162,8 @@ class matrix {
 
   // + (function, operator)
   // Single value added to each matrix element. New object created & returned.
-  matrix<Tp, rows, cols> operator+(Tp val) {
-    matrix<Tp, rows, cols> result(this);
+  mn_matrix<Tp, rows, cols> operator+(Tp val) {
+    mn_matrix<Tp, rows, cols> result(this);
 
     for (int i = 0; i < size_; ++i) result(i) += val;
     return result;
@@ -172,8 +172,8 @@ class matrix {
   // - (function, operator)
   // Single value subtracted from each matrix element. New object created &
   // returned.
-  matrix<Tp, rows, cols> operator-(Tp val) {
-    matrix<Tp, rows, cols> result(this);
+  mn_matrix<Tp, rows, cols> operator-(Tp val) {
+    mn_matrix<Tp, rows, cols> result(this);
 
     for (int i = 0; i < size_; ++i) result(i) -= val;
     return result;
@@ -182,8 +182,8 @@ class matrix {
   // * (function, operator)
   // Single factor applied to each matrix element. New object created &
   // returned.
-  matrix<Tp, rows, cols> operator*(Tp val) {
-    matrix<Tp, rows, cols> result(this);
+  mn_matrix<Tp, rows, cols> operator*(Tp val) {
+    mn_matrix<Tp, rows, cols> result(this);
 
     for (int i = 0; i < size_; ++i) result(i) *= val;
     return result;
@@ -192,8 +192,8 @@ class matrix {
   // / (function, operator)
   // Single divisor applied to each matrix element. New object created &
   // returned.
-  matrix<Tp, rows, cols> operator/(Tp val) {
-    matrix<Tp, rows, cols> result(this);
+  mn_matrix<Tp, rows, cols> operator/(Tp val) {
+    mn_matrix<Tp, rows, cols> result(this);
 
     for (int i = 0; i < size_; ++i) result(i) /= val;
     return result;
@@ -201,7 +201,7 @@ class matrix {
 
   // += (function, operator)
   // Elementwise matrix addition. Current instance modified, pointer returned.
-  matrix<Tp, rows, cols>* operator+=(matrix<Tp, rows, cols> M) {
+  mn_matrix<Tp, rows, cols>* operator+=(mn_matrix<Tp, rows, cols> M) {
     for (int i = 0; i < size_; ++i) set_(i, get_(i) + M(i));
     return this;
   }
@@ -209,7 +209,7 @@ class matrix {
   // -= (function, operator)
   // Elementwise matrix subtraction. Current instance modified, pointer
   // returned.
-  matrix<Tp, rows, cols>* operator-=(matrix<Tp, rows, cols> M) {
+  mn_matrix<Tp, rows, cols>* operator-=(mn_matrix<Tp, rows, cols> M) {
     for (int i = 0; i < size_; ++i) set_(i, get_(i) - M(i));
     return this;
   }
@@ -217,7 +217,7 @@ class matrix {
   // += (function, operator)
   // Single value added to each matrix element. Current instance modified,
   // pointer returned.
-  matrix<Tp, rows, cols>* operator+=(Tp val) {
+  mn_matrix<Tp, rows, cols>* operator+=(Tp val) {
     for (int i = 0; i < size_; ++i) set_(i, get_(i) + val);
     return this;
   }
@@ -225,7 +225,7 @@ class matrix {
   // -= (function, operator)
   // Single value subtracted from each matrix element. Current instance
   // modified, pointer returned.
-  matrix<Tp, rows, cols>* operator-=(Tp val) {
+  mn_matrix<Tp, rows, cols>* operator-=(Tp val) {
     for (int i = 0; i < size_; ++i) set_(i, get_(i) - val);
     return this;
   }
@@ -233,7 +233,7 @@ class matrix {
   // *= (function, operator)
   // Single factor applied to each matrix element. Current instance modified,
   // pointer returned.
-  matrix<Tp, rows, cols>* operator*=(Tp val) {
+  mn_matrix<Tp, rows, cols>* operator*=(Tp val) {
     for (int i = 0; i < size_; ++i) set_(i, get_(i) * val);
     return this;
   }
@@ -242,15 +242,15 @@ class matrix {
   // Single divisor applied to each matrix element. Current instance modiified,
   // pointer returned.
   //
-  matrix<Tp, rows, cols>* operator/=(Tp val) {
+  mn_matrix<Tp, rows, cols>* operator/=(Tp val) {
     for (int i = 0; i < size_; ++i) set_(i, get_(i) / val);
     return this;
   }
 
   // power (function)
   // Elementise power function. Raises each element to specified exponent.
-  matrix<Tp, rows, cols> power(int exp) {
-    matrix<Tp, rows, cols> result(*(this));
+  mn_matrix<Tp, rows, cols> power(int exp) {
+    mn_matrix<Tp, rows, cols> result(*(this));
 
     for (int i = 0; i < size_; ++i) { result(i) = pow(get_(i), exp); }
     return result;
@@ -260,9 +260,9 @@ class matrix {
   // * (function, operator)
   // Matrix multiplication. New instance created and returned.
   template <size_t cols2>
-  matrix<Tp, rows, cols2> operator* (matrix<Tp, cols, cols2> M) {
+  mn_matrix<Tp, rows, cols2> operator* (mn_matrix<Tp, cols, cols2> M) {
     const int shape[2]{shape_[0], M.shape()[1]};
-    matrix<Tp, rows, cols2> result{0.};
+    mn_matrix<Tp, rows, cols2> result{0.};
 
     for (int i = 0; i < shape[0]; ++i) {
       for (int j = 0; j < shape[1]; ++j) {
@@ -276,7 +276,7 @@ class matrix {
   // *= (function, operator)
   // Matrix multiplication. Current instance modiified, pointer returned.
   template <size_t cols2>
-  matrix<Tp, rows, cols2>* operator*=(matrix<Tp, cols, cols2> M) {
+  mn_matrix<Tp, rows, cols2>* operator*=(mn_matrix<Tp, cols, cols2> M) {
     const int shape[2]{shape_[0], M.shape()[1]};
 
     // Must create new object to store new values to avoid overwriting old
@@ -299,7 +299,7 @@ class matrix {
   // i.e. [C] = [A]/[B] = [B]^{-1} * [A].
   // Only possible with square right-hand matrix.
   // New instance created and returned.
-  matrix<Tp, rows, cols> operator/(matrix<Tp, rows, rows> M) {
+  mn_matrix<Tp, rows, cols> operator/(mn_matrix<Tp, rows, rows> M) {
     return inverse(M) * *(this);
   }
 
@@ -308,8 +308,8 @@ class matrix {
   // i.e. [C] = [A]/[B] = [B]^{-1} * [A]
   // Only possible with square right-hand matrix.
   // New instance created and pointer returned, current instance destructed.
-  matrix<Tp, rows, cols>* operator/=(matrix<Tp, rows, rows> M) {
-    matrix<Tp, rows, cols> result = inverse(M) * *(this);
+  mn_matrix<Tp, rows, cols>* operator/=(mn_matrix<Tp, rows, rows> M) {
+    mn_matrix<Tp, rows, cols> result = inverse(M) * *(this);
     *(this) = result;
     return this;
   }
@@ -327,7 +327,7 @@ class matrix {
 
   // == (function, operator)
   // Returns true if all elements are the same.
-  bool operator==(matrix<Tp, cols, rows> M) {
+  bool operator==(mn_matrix<Tp, cols, rows> M) {
     for (int i = 0; i < size_; ++i)
       if (!(get_(i) == M(i))) { return false; }
      
@@ -346,7 +346,7 @@ class matrix {
   // > (function, operator)
   // Returns true if all elements are greater than all corresponding right-hand
   // elements.
-  bool operator>(matrix<Tp, cols, rows> M) {
+  bool operator>(mn_matrix<Tp, cols, rows> M) {
     for (int i = 0; i < size_; ++i)
       if (!(get_(i) > M(i))) { return false; }
 
@@ -365,7 +365,7 @@ class matrix {
   // >= (function, operator)
   // Returns true if all elements are greater than or equal to all
   // corresponding right-hand elements.
-  bool operator>=(matrix<Tp, cols, rows> M) {
+  bool operator>=(mn_matrix<Tp, cols, rows> M) {
     for (int i = 0; i < size_; ++i)
       if (!(get_(i) >= M(i))) { return false; }
 
@@ -384,7 +384,7 @@ class matrix {
   // < (function, operator)
   // Returns true if all elements are less than all corresponding right-hand
   // elements.
-  bool operator<(matrix<Tp, cols, rows> M) {
+  bool operator<(mn_matrix<Tp, cols, rows> M) {
     for (int i = 0; i < size_; ++i)
       if (!(get_(i) < M(i))) { return false; }
 
@@ -403,7 +403,7 @@ class matrix {
   // <= (function, operator)
   // Returns true if all elements are less than or equal to all corresponding
   // right-hand elements.
-  bool operator<=(matrix<Tp, cols, rows> M) {
+  bool operator<=(mn_matrix<Tp, cols, rows> M) {
     for (int i = 0; i < size_; ++i)
       if (!(get_(i) <= M(i))) { return false; }
 
@@ -415,17 +415,17 @@ class matrix {
   Tp * operator[](int i) { return &items_[i * shape_[1]]; }  // enables A[i][j] = val;
 
   // -------------------- Assignment. --------------------
-  matrix<Tp, rows, cols>& operator= (matrix<Tp, rows, cols> M) {
+  mn_matrix<Tp, rows, cols>& operator= (mn_matrix<Tp, rows, cols> M) {
     for (int i = 0; i < size_; ++i) { set_(i, M(i)); }
     return *(this);
   }
 
-  matrix<Tp, rows, cols>& operator= (matrix<Tp, rows, cols>& M) {
+  mn_matrix<Tp, rows, cols>& operator= (mn_matrix<Tp, rows, cols>& M) {
     for (int i = 0; i < size_; ++i) { set_(i, M(i)); }
     return *(this);
   }
 
-  matrix<Tp, rows, cols>& operator=(Tp * M) {
+  mn_matrix<Tp, rows, cols>& operator=(Tp * M) {
     for (int i = 0; i < size_; ++i) { set_(i, M[i]); }
     return *(this);
   }
@@ -438,8 +438,8 @@ class matrix {
 // remove_rowi_colj (function)
 // Returns scalar-valued matrix determinant (type Tp)
 template <typename Tp, size_t n>
-matrix<Tp, n - 1, n - 1> remove_rowi_colj(size_t i, size_t j,
-                                          matrix<Tp, n, n> square) {
+mn_matrix<Tp, n - 1, n - 1> remove_rowi_colj(size_t i, size_t j,
+                                          mn_matrix<Tp, n, n> square) {
   Tp reduced[(n - 1) * (n - 1)];
   int kk = 0;
 
@@ -449,7 +449,7 @@ matrix<Tp, n - 1, n - 1> remove_rowi_colj(size_t i, size_t j,
       kk += 1;
     }
   }
-  return matrix<Tp, n - 1, n - 1>(reduced);
+  return mn_matrix<Tp, n - 1, n - 1>(reduced);
 }
 
 // ==================== Matrix Properties. ====================
@@ -458,7 +458,7 @@ matrix<Tp, n - 1, n - 1> remove_rowi_colj(size_t i, size_t j,
 // trace (function)
 // Returns trace (type Tp) of matrix instance.
 template <typename Tp, size_t n>
-Tp trace(matrix<Tp, n, n> square) {
+Tp trace(mn_matrix<Tp, n, n> square) {
   Tp trace = 0.;
   for (int i = 0; i < n; ++i) trace += square[i][i];
   return trace;
@@ -468,7 +468,7 @@ Tp trace(matrix<Tp, n, n> square) {
 // Returns scalar-valued matrix determinant (type Tp). Recursive.
 // Determinant is sum along one dimension of matrix of minors.
 template <typename Tp, size_t n>
-Tp determinant(matrix<Tp, n, n> square) {
+Tp determinant(mn_matrix<Tp, n, n> square) {
   Tp det = 0.;
   int scalar;
 
@@ -482,7 +482,7 @@ Tp determinant(matrix<Tp, n, n> square) {
 // Base case for matrix determinant function: 2x2.
 // Determinant is ad - bc.
 template <typename Tp>
-Tp determinant(matrix<Tp, 2, 2> square) {
+Tp determinant(mn_matrix<Tp, 2, 2> square) {
   return square[0][0] * square[1][1] - square[0][1] * square[1][0];
 }
 
@@ -490,8 +490,8 @@ Tp determinant(matrix<Tp, 2, 2> square) {
 // Returns matrix of co-factors. Alternating factors
 // in [-1, 1] is applied to matrix of minors.
 template <typename Tp, size_t n>  // TODO: n > 2 enforced?
-matrix<Tp, n, n> cofactors(matrix<Tp, n, n> square) {
-  matrix<Tp, n, n> cofactor_matrix;
+mn_matrix<Tp, n, n> cofactors(mn_matrix<Tp, n, n> square) {
+  mn_matrix<Tp, n, n> cofactor_matrix;
   int scalar;
 
   for (int i = 0; i < n; ++i) {
@@ -509,7 +509,7 @@ matrix<Tp, n, n> cofactors(matrix<Tp, n, n> square) {
 // Returns the inverse (element type Tp) of current matrix instance.
 // Matrix inverse is (1 / det) * [C] where [C] is cofactor matrix.
 template <typename Tp, size_t n>
-matrix<Tp, n, n> inverse(matrix<Tp, n, n> square) {
+mn_matrix<Tp, n, n> inverse(mn_matrix<Tp, n, n> square) {
   return cofactors(square).transpose() * (Tp(1.) / determinant(square));
 }
 
@@ -519,9 +519,9 @@ matrix<Tp, n, n> inverse(matrix<Tp, n, n> square) {
 // Nx1 matrix representation of vector. Vector operations encoded.
 // Derived from matrix class.
 template <typename Tp, size_t len>
-class vector : virtual public matrix<Tp, len, 1> {
- using matrix<Tp, len, 1>::items_;
- using matrix<Tp, len, 1>::size_;
+class vector : virtual public mn_matrix<Tp, len, 1> {
+ using mn_matrix<Tp, len, 1>::items_;
+ using mn_matrix<Tp, len, 1>::size_;
 
   // ==================== vector ====================
  private:
@@ -561,12 +561,12 @@ class vector : virtual public matrix<Tp, len, 1> {
     }
   }
 
-  vector(matrix<Tp, len, 1> M) {
+  vector(mn_matrix<Tp, len, 1> M) {
     for (int i = 0; i < M.size(); ++i) set_(i, M(i));
   }
 
   template <typename Tp2, size_t cols>
-  vector(matrix<Tp2, len / cols, cols> M) {
+  vector(mn_matrix<Tp2, len / cols, cols> M) {
     for (int i = 0; i < M.size(); ++i) set_(i, M(i));
   }
 
@@ -590,8 +590,8 @@ class vector : virtual public matrix<Tp, len, 1> {
 
   // outer (function)
   // Returns outer product of left & right hand vector. Symmetric matrix result.
-  matrix<Tp, len, len> outer(vector<Tp, len> V) {
-    matrix<Tp, len, len> result{0.};
+  mn_matrix<Tp, len, len> outer(vector<Tp, len> V) {
+    mn_matrix<Tp, len, len> result{0.};
 
     for (int i = 0; i < length(); ++i)
       for (int j = 0; j < length(); ++j) result[i][j] = get_(i) * V[j];
@@ -603,12 +603,12 @@ class vector : virtual public matrix<Tp, len, 1> {
   Tp & operator[](int i) { return items_[i]; }  // enables A[i][j] = val;
 
   // -------------------- Assignment. --------------------
-  vector<Tp, len>& operator=(matrix<Tp, len, 1> M) {
+  vector<Tp, len>& operator=(mn_matrix<Tp, len, 1> M) {
     for (int i = 0; i < size_; ++i) { set_(i, M(i)); }
     return *(this);
   }
 
-  vector<Tp, len>& operator=(matrix<Tp, len, 1>& M) {
+  vector<Tp, len>& operator=(mn_matrix<Tp, len, 1>& M) {
     for (int i = 0; i < size_; ++i) { set_(i, M(i)); }
     return *(this);
   }
@@ -639,8 +639,8 @@ vector<Tp, 3> cross(vector<Tp, 3> lhs, vector<Tp, 3> rhs) {
 // i.e. cross(v1, v2) == tilde(v1) * v2
 //
 template <typename Tp>
-matrix<Tp, 3, 3> tilde(vector<Tp, 3> vec) {
-  return matrix<Tp, 3, 3>{
+mn_matrix<Tp, 3, 3> tilde(vector<Tp, 3> vec) {
+  return mn_matrix<Tp, 3, 3>{
     Tp(0.), -vec[2],  vec[1], 
     vec[2],  Tp(0.), -vec[0],
    -vec[1],  vec[0], Tp(0.)
@@ -651,8 +651,8 @@ matrix<Tp, 3, 3> tilde(vector<Tp, 3> vec) {
 // Returns nxn identity matrix. 
 //
 template <typename Tp, size_t n>
-matrix<Tp, n, n> eye() {
-  matrix<Tp, n, n> identity{Tp(0.)};
+mn_matrix<Tp, n, n> eye() {
+  mn_matrix<Tp, n, n> identity{Tp(0.)};
   for (int i = 0; i < n; ++i) {
     identity[i][i] = 1.;
   }
@@ -663,7 +663,7 @@ matrix<Tp, n, n> eye() {
 }  // namespace attitude
 
 template <typename Tp, size_t r, size_t c>
-void display(attitude::matrix<Tp, r, c> M) {
+void display(attitude::mn_matrix<Tp, r, c> M) {
   printf("[ ");
   for (int i = 0; i < M.size(); ++i) {
     printf("%.8f, ", M(i));

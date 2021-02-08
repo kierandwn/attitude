@@ -49,7 +49,7 @@ int argmax(Tp * arr, int length) {
 // Returns the equivalent quaternion components for an input rotation matrix (type Tp).
 // Note: inputted quaterion array is modified. No function return.
 template<typename Tp> 
-void shepherds_rule(matrix<Tp, 3, 3> matrix, Tp quaternion[4]) {
+void shepherds_rule(mn_matrix<Tp, 3, 3> matrix, Tp quaternion[4]) {
   Tp _4q0q0 = 1 + matrix[0][0] + matrix[1][1] + matrix[2][2];
   Tp _4q1q1 = 1 + matrix[0][0] - matrix[1][1] - matrix[2][2];
   Tp _4q2q2 = 1 - matrix[0][0] + matrix[1][1] - matrix[2][2];

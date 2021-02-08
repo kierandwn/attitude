@@ -58,7 +58,7 @@ public:
   euler(description_set<Tp2, n2_items> set) : description_set(set) 
   { parameters_from_dcm_(); }
 
-  euler(attitude::matrix<Tp, 3, 3> R, uint16_t ijk=123) 
+  euler(attitude::mn_matrix<Tp, 3, 3> R, uint16_t ijk=123) 
       : description_set(R),
         ijk_(ijk)
   { parameters_from_dcm_(); }
@@ -66,7 +66,7 @@ public:
   // dke (function)
   // Returns a new 3x3 matrix (type Tp) that maps angular velocity
   // onto euler rates.
-  attitude::matrix<Tp, 3, 3> dke() override {
+  attitude::mn_matrix<Tp, 3, 3> dke() override {
     switch (order()) {
       case 123:
         return
