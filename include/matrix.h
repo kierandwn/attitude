@@ -39,6 +39,12 @@ namespace attitude {
 template <typename Tp, size_t rows, size_t cols>
 class matrix {
   // ==================== matrix ====================
+ protected:
+  Tp items_[rows * cols];
+
+  const size_t size_ = rows * cols;
+  const size_t shape_[2]{rows, cols};
+
  private:
   Tp get_(int i) {
     if (i < size_) {
@@ -68,12 +74,6 @@ class matrix {
       items_[i] = arr[i];
     }
   }
-
- protected:
-  Tp items_[rows * cols];
-
-  const size_t size_ = rows * cols;
-  const size_t shape_[2]{rows, cols};
 
  public:
   matrix() {}
@@ -420,6 +420,14 @@ class matrix {
     return *(this);
   }
 
+  matrix<Tp, rows, cols>& operator=(Tp * M) {
+    for (int i = 0; i < size_; ++i) { set_(i, M[i]); }
+    return *(this);
+  }
+
+  // -------------------- Conversion. --------------------
+  Tp * c_array() { return &items_[0]; }
+
 };  // matrix
 
 // remove_rowi_colj (function)
@@ -507,6 +515,9 @@ matrix<Tp, n, n> inverse(matrix<Tp, n, n> square) {
 // Derived from matrix class.
 template <typename Tp, size_t len>
 class vector : virtual public matrix<Tp, len, 1> {
+ using matrix<Tp, len, 1>::items_;
+ using matrix<Tp, len, 1>::size_;
+
   // ==================== vector ====================
  private:
   Tp get_(int i) {
@@ -586,6 +597,16 @@ class vector : virtual public matrix<Tp, len, 1> {
   // -------------------- Indexing. --------------------
   Tp & operator[](int i) { return items_[i]; }  // enables A[i][j] = val;
 
+  // -------------------- Assignment. --------------------
+  vector<Tp, len>& operator=(matrix<Tp, len, 1>& M) {
+    for (int i = 0; i < size_; ++i) { set_(i, M(i)); }
+    return *(this);
+  }
+
+  vector<Tp, len>& operator=(Tp * arr) {
+    for (int i = 0; i < size_; ++i) { set_(i, arr[i]); }
+    return *(this);
+  }
 
 };  // vector
 
@@ -645,4 +666,4 @@ void display(attitude::matrix<Tp, r, c> M) {
   }
 }
 
-#endif ATT_MATRIX_H_
+#endif  // ATT_MATRIX_H_
