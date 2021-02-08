@@ -415,6 +415,11 @@ class matrix {
   Tp * operator[](int i) { return &items_[i * shape_[1]]; }  // enables A[i][j] = val;
 
   // -------------------- Assignment. --------------------
+  matrix<Tp, rows, cols>& operator= (matrix<Tp, rows, cols> M) {
+    for (int i = 0; i < size_; ++i) { set_(i, M(i)); }
+    return *(this);
+  }
+
   matrix<Tp, rows, cols>& operator= (matrix<Tp, rows, cols>& M) {
     for (int i = 0; i < size_; ++i) { set_(i, M(i)); }
     return *(this);
@@ -598,6 +603,11 @@ class vector : virtual public matrix<Tp, len, 1> {
   Tp & operator[](int i) { return items_[i]; }  // enables A[i][j] = val;
 
   // -------------------- Assignment. --------------------
+  vector<Tp, len>& operator=(matrix<Tp, len, 1> M) {
+    for (int i = 0; i < size_; ++i) { set_(i, M(i)); }
+    return *(this);
+  }
+
   vector<Tp, len>& operator=(matrix<Tp, len, 1>& M) {
     for (int i = 0; i < size_; ++i) { set_(i, M(i)); }
     return *(this);
