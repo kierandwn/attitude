@@ -50,10 +50,10 @@ class description_set {
   virtual void dcm_from_parameters_() = 0;
   virtual void parameters_from_dcm_() = 0;
 
-  matrix<Tp, 3, 3> matrix_;
+  mn_matrix<Tp, 3, 3> matrix_;
 
   description_set() {}
-  description_set(matrix<Tp, 3, 3> M) 
+  description_set(mn_matrix<Tp, 3, 3> M) 
       : matrix_(M) {}
 
   description_set(std::initializer_list<Tp> il) {
@@ -76,11 +76,11 @@ class description_set {
   // Differential Kinematic Equation.
   // Pure virtual function. Indicate concrete descriptions sets must specify
   // a matrix for mapping angular velocity onto their parameter rates.
-  virtual matrix<Tp, n_items, n_items> dke() = 0;
+  virtual mn_matrix<Tp, n_items, n_items> dke() = 0;
 
   // matrix (function)
   // Returns the directional cosine matrix equivalent of the represented rotation.
-  matrix<Tp, 3, 3> matrix() {
+  mn_matrix<Tp, 3, 3> matrix() {
     if (update_dcm_) { dcm_from_parameters_(); }
     return matrix_;
   }
@@ -93,8 +93,9 @@ class description_set {
   // propagate (function)
   // Given angular velocity, propagate current representation over timestep dt.
   void propagate(Tp dt, vector<Tp, 3> omega) {
-    vector<Tp, n_items> p_rate = dke() * omega;
-    for (int i = 0; i < n_items; ++i) { items_[i] = get_(i) + dt * dp[i]; }
+    vector<Tp, n_items> rate = dke() * omega;
+    items_ += rate * dt;
+    // for (int i = 0; i < n_items; ++i) { items_[i] = get_(i) + dp[i] * dt; }
   }
 
   // -------------------- DCM-based Addition/Subtraction. --------------------
@@ -127,7 +128,7 @@ class description_set {
   // -------------------- Comparison. --------------------
   template<size_t n2_items>
   bool operator== (description_set<Tp, n2_items> set) { return matrix() == set.matrix(); }
-  // bool operator== (::matrix<Tp, 3, 3> & rhs) { return matrix() == rhs; } // TODO: no effect?
+  // bool operator== (::mn_matrix<Tp, 3, 3> & rhs) { return matrix() == rhs; } // TODO: no effect?
 
   // -------------------- Indexing. --------------------
   Tp & operator[] (int i) { update_dcm_ = true; return items_[i]; }
