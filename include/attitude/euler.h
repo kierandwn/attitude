@@ -29,9 +29,11 @@
 #include <cmath>
 #include <initializer_list>
 
-#include "base.h"
-#include "matrix.h"
-#include "dcm.h"
+#include "attitude/base.h"
+#include "attitude/matrix.h"
+#include "attitude/shepherds.h"
+
+#include "attitude/dcm.h"
 
 namespace attitude {
 
@@ -43,6 +45,12 @@ namespace attitude {
 template <typename Tp>
 class euler : public virtual description_set<Tp, 3> 
 {
+  using description_set<Tp, 3>::get_;
+  // using description_set<Tp, 3>::set_;
+  using description_set<Tp, 3>::items_;
+  using description_set<Tp, 3>::matrix_;
+  using description_set<Tp, 3>::update_dcm_;
+
 private:
   const uint16_t ijk_;
 
@@ -50,16 +58,16 @@ public:
   euler(uint16_t ijk=123) : ijk_(ijk) {}
 
   euler(Tp t1, Tp t2, Tp t3, uint16_t ijk=123)
-      : description_set{ t1, t2, t3 },
+      : description_set<Tp, 3>{ t1, t2, t3 },
         ijk_(ijk) 
   { dcm_from_parameters_(); }
 
   template <typename Tp2, size_t n2_items>
-  euler(description_set<Tp2, n2_items> set) : description_set(set) 
+  euler(description_set<Tp2, n2_items> set) : description_set<Tp, 3>(set) 
   { parameters_from_dcm_(); }
 
   euler(attitude::mn_matrix<Tp, 3, 3> R, uint16_t ijk=123) 
-      : description_set(R),
+      : description_set<Tp, 3>(R),
         ijk_(ijk)
   { parameters_from_dcm_(); }
 
@@ -98,11 +106,11 @@ public:
   // No direct optimisation - has to go through rotation matrices.
 
   euler<Tp> operator+ (euler<Tp> theta) {
-    return euler<Tp>(matrix() * theta.matrix(), order());
+    return euler<Tp>(description_set<Tp, 3>::matrix() * theta.matrix(), order());
   }
 
   euler<Tp> operator- (euler<Tp> theta) {
-    return euler<Tp>(matrix() / theta.matrix(), order());
+    return euler<Tp>(description_set<Tp, 3>::matrix() / theta.matrix(), order());
   }
 
   euler<Tp> * operator+= (euler<Tp> theta) {
@@ -132,7 +140,7 @@ public:
   }
 
   // -------------------- Comparison. --------------------
-  bool operator== (euler<Tp> theta) { return matrix() == theta.matrix(); }
+  bool operator== (euler<Tp> theta) { return description_set<Tp, 3>::matrix() == theta.matrix(); }
 
  private:
   // -------------------- Description set virtual overrides. --------------------

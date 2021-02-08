@@ -26,11 +26,12 @@
 #ifndef ATT_MRODR_H_
 #define ATT_MRODR_H_
 
+#include <cmath>
 #include <initializer_list>
 
-#include "base.h"
-#include "matrix.h"
-#include "shepherds.h"
+#include "attitude/base.h"
+#include "attitude/matrix.h"
+#include "attitude/shepherds.h"
 
 namespace attitude {
 // TODO: a lot of the below relies on the vector operations. More efficient 
@@ -42,8 +43,10 @@ namespace attitude {
 // Decribes direct addition & subtraction methods for m. rodriguez parameters,
 // and defines mapping to/from DCM, and angular velocity to MRP rates.
 template <typename Tp>
-class mrp : public virtual description_set<Tp, 3> {
+class mrp : public virtual description_set<Tp, 3> 
+{
   using description_set<Tp, 3>::get_;
+  using description_set<Tp, 3>::set_;
   using description_set<Tp, 3>::items_;
   using description_set<Tp, 3>::matrix_;
   using description_set<Tp, 3>::update_dcm_;
@@ -143,7 +146,7 @@ class mrp : public virtual description_set<Tp, 3> {
 
 
   // -------------------- Comparison. --------------------
-  bool operator==(mrp<Tp> q) { return matrix() == q.matrix(); }
+  bool operator==(mrp<Tp> q) { return description_set<Tp, 3>::matrix() == q.matrix(); }
 
  private:
   // -------------------- Description set virtual overrides. --------------------

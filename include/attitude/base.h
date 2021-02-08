@@ -28,7 +28,7 @@
 #include <initializer_list>
 #include <iostream>
 
-#include "matrix.h"
+#include "attitude/matrix.h"
 
 namespace attitude {
 

@@ -21,7 +21,7 @@
 
 #include <cmath> // TODO: Compiler instructions - option for lightwight trig implementation?
 
-#include "matrix.h"
+#include "attitude/matrix.h"
 
 namespace attitude {
 namespace dcm {

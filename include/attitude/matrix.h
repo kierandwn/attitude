@@ -26,6 +26,8 @@
 #ifndef ATT_MATRIX_H_
 #define ATT_MATRIX_H_
 
+#include <stdio.h>
+#include <cmath>
 #include <initializer_list>
 #include <algorithm>
 

@@ -26,7 +26,7 @@
 #ifndef ATT_SHEPHERDS_H_
 #define ATT_SHEPHERDS_H_
 
-#include "matrix.h"
+#include "attitude/matrix.h"
 
 namespace attitude {
 

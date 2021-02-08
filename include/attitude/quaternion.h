@@ -28,9 +28,9 @@
 
 #include <initializer_list>
 
-#include "base.h"
-#include "matrix.h"
-#include "shepherds.h"
+#include "attitude/base.h"
+#include "attitude/matrix.h"
+#include "attitude/shepherds.h"
 
 namespace attitude {
 
