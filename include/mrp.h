@@ -43,16 +43,21 @@ namespace attitude {
 // and defines mapping to/from DCM, and angular velocity to MRP rates.
 template <typename Tp>
 class mrp : public virtual description_set<Tp, 3> {
+  using description_set<Tp, 3>::get_;
+  using description_set<Tp, 3>::items_;
+  using description_set<Tp, 3>::matrix_;
+  using description_set<Tp, 3>::update_dcm_;
+
  public:
   mrp() {}
 
-  mrp(Tp s1, Tp s2, Tp s3) : description_set{s1, s2, s3} { dcm_from_parameters_(); }
+  mrp(Tp s1, Tp s2, Tp s3) : description_set<Tp, 3>{s1, s2, s3} { dcm_from_parameters_(); }
 
-  mrp(attitude::matrix<Tp, 3, 3> R) : description_set(R) { parameters_from_dcm_(); }
-  mrp(attitude::vector<Tp, 3> s) : description_set{s[0], s[1], s[2]} { dcm_from_parameters_(); }
+  mrp(attitude::matrix<Tp, 3, 3> R) : description_set<Tp, 3>(R) { parameters_from_dcm_(); }
+  mrp(attitude::vector<Tp, 3> s) : description_set<Tp, 3>{s[0], s[1], s[2]} { dcm_from_parameters_(); }
 
   template <typename Tp2, size_t n2_items>
-  mrp(description_set<Tp2, n2_items> * set) : description_set(set) {}
+  mrp(description_set<Tp2, n2_items> * set) : description_set<Tp, 3>(set) {}
 
   // dke (function)
   // Returns a new 3x3 matrix (type Tp) that maps angular velocity onto modified
@@ -118,7 +123,7 @@ class mrp : public virtual description_set<Tp, 3> {
         (items_ * (1 - rhs_norm2) + rhs_vec * (1 - lhs_norm2) - 2 * items_.cross(rhs_vec)) /
         (1 + rhs_norm2 * lhs_norm2 - 2 * rhs_vec.inner(items_)));
 
-    set_([result[0], result[1], result[2]]);
+    set_(&result[0]);
     return this;
   }
 
