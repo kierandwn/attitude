@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "include/helper.h"
-#include "crp.h"
+#include "attitude/crp.h"
 
 using namespace attitude;
 

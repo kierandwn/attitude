@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "include/helper.h"
-#include "euler.h"
+#include "attitude/euler.h"
 
 using namespace attitude;
 

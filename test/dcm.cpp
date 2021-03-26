@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
- #include "dcm.h"
+ #include "attitude/dcm.h"
  #include "include/helper.h"
 
  using namespace attitude;

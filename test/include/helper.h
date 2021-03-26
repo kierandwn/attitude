@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include "dcm.h"
+#include "attitude/dcm.h"
 
 using namespace attitude;
 

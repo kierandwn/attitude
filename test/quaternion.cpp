@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "include/helper.h"
-#include "quaternion.h"
+#include "attitude/quaternion.h"
 
 using namespace attitude;
 

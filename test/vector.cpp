@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 
-
-// #include "euler.h"
-#include "matrix.h"
+#include "attitude/matrix.h"
 
 using namespace attitude;
 

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "matrix.h"
+#include "attitude/matrix.h"
 
 using namespace attitude;
 

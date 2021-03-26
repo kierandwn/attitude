@@ -1,7 +1,10 @@
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 add_subdirectory(./lib/googletest)
 
-include_directories("include")
+include_directories(
+    ../include
+    ./include
+)
 
 file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false *.h *.cpp)
 #set(SOURCES ${TEST_SOURCES})

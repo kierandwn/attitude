@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "include/helper.h"
-#include "mrp.h"
+#include "attitude/mrp.h"
 
 using namespace attitude;
 
